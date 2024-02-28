@@ -3,12 +3,13 @@ import errorResponse from "../utils/errorResponse.js";
 import theater from "../models/theater.js";
 
 export const newTheater = asyncHandler(async (req, res, next) => {
-  console.log(req?.body?.slots, typeof JSON.parse(req?.body?.slots));
   const newDoc = new theater({
     ...req?.body,
     occupancyDetails: JSON.parse(req?.body?.occupancyDetails),
+    features: JSON.parse(req?.body?.features),
     slots: JSON.parse(req?.body?.slots),
-    logo: req?.file?.path,
+    logo: req?.files?.logo[0],
+    gallery: req?.files?.gallery,
   });
   await newDoc.save();
   res.status(200).json({ status: true, newDoc });

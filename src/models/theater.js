@@ -5,8 +5,17 @@ const theaterSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    theaterCharges: {
+      type: Number,
+      required: [true, "Theater charges is required!!"],
+    },
+    decorationCharges: {
+      type: Number,
+      required: [true, "Decoration charges is required!!"],
+    },
+
     logo: {
-      type: String,
+      type: {},
       required: true,
     },
     gallery: {
@@ -31,15 +40,15 @@ const theaterSchema = new mongoose.Schema(
       ],
       required: true,
     },
+    location: {
+      type: String,
+      required: true,
+    },
     occupancyDetails: {
-      maxOccupancy: {
+      minOccupancy: {
         type: Number,
-        required: [true, "Maximum occupancy is required!!"],
       },
-      maxPaidOccupancy: {
-        type: Number,
-        required: [true, "Maximum paid occupany is required!!"],
-      },
+
       extraCharges: {
         type: Number,
         required: [true, "Extra charges field is required!!"],

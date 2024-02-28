@@ -6,6 +6,9 @@ import {
   newTheater,
 } from "../controllers/theater.js";
 const router = express.Router();
-router.route("/").post(upload.single("logo"), newTheater).get(getAllTheater);
+router
+  .route("/")
+  .post(upload.fields([{ name: "logo" }, { name: "gallery" }]), newTheater)
+  .get(getAllTheater);
 router.route("/:id").patch().delete(deleteTheater);
 export default router;

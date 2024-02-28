@@ -21,4 +21,4 @@ const cakeSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-export default mongoose.model("cakeSchema", ceremonySchema);
+export default mongoose.model("cake", cakeSchema);

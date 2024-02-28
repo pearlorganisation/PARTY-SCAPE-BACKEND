@@ -1,5 +1,4 @@
 import express from "express";
-
 import dotenv from "dotenv";
 import cookieParser from "cookie-parser";
 import cors from "cors";
@@ -44,11 +43,13 @@ app.use(
   )
 );
 import theaterRoutes from "./src/routes/theater.js";
+import bookingRoutes from "./src/routes/bookings.js";
 import authRoutes from "./src/routes/auth.js";
 import ceremonyTypeRoutes from "./src/routes/optional/ceremonyType.js";
 import { error } from "./src/middlewares/error.js";
 
 app.use("/api/v1/auth", authRoutes);
+app.use("/api/v1/bookings", bookingRoutes);
 app.use("/api/v1/theater", theaterRoutes);
 app.use("/api/v1/ceremonyType", ceremonyTypeRoutes);
 app.use(error);
