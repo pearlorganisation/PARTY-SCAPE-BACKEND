@@ -3,7 +3,11 @@ import errorResponse from "../../utils/errorResponse.js";
 import ceremonyType from "../../models/optional/ceremonyType.js";
 
 export const newCeremonyType = asyncHandler(async (req, res, next) => {
-  const newDoc = new ceremonyType({ ...req?.body, logo: req?.file?.path });
+  const newDoc = new ceremonyType({
+    ...req?.body,
+    logo: req?.file?.path,
+    otherDetails: JSON.parse(req?.body?.otherDetails),
+  });
   await newDoc.save();
   res.status(201).json({ status: true, message: "Created successfully!!" });
 });
