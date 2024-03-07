@@ -19,6 +19,7 @@ app.use(
             "http://localhost:4112",
             "http://localhost:5010",
             "http://localhost:4113",
+            "http://localhost:5173",
             "http://localhost:4114",
             "https://development.pearl-developer.com",
             "https://trade-fair-india.vercel.app",
@@ -30,6 +31,7 @@ app.use(
       : {
           origin: [
             "http://localhost:4112",
+            "http://localhost:5173",
             "http://localhost:5010",
             "http://localhost:4113",
             "http://localhost:4114",
@@ -43,6 +45,7 @@ app.use(
   )
 );
 import theaterRoutes from "./src/routes/theater.js";
+import addOnsRoutes from "./src/routes/optional/addOns.js";
 import cakeRoutes from "./src/routes/optional/cake.js";
 import bookingRoutes from "./src/routes/bookings.js";
 import authRoutes from "./src/routes/auth.js";
@@ -53,6 +56,7 @@ app.use("/api/v1/auth", authRoutes);
 app.use("/api/v1/bookings", bookingRoutes);
 app.use("/api/v1/cake", cakeRoutes);
 app.use("/api/v1/theater", theaterRoutes);
+app.use("/api/v1/addOns", addOnsRoutes);
 
 app.use("/api/v1/ceremonyType", ceremonyTypeRoutes);
 app.use(error);

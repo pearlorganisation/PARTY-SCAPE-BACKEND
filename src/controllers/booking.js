@@ -5,7 +5,7 @@ import bookings from "../models/bookings.js";
 
 export const bookingOrder = asyncHandler(async (req, res, next) => {
   const options = {
-    amount: Number(700 * 100),
+    amount: Number(1 * 100),
     currency: "INR",
   };
   const order = await razorpayInstance.orders.create(options);

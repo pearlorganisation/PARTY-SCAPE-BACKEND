@@ -5,14 +5,6 @@ const theaterSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
-    theaterCharges: {
-      type: Number,
-      required: [true, "Theater charges is required!!"],
-    },
-    decorationCharges: {
-      type: Number,
-      required: [true, "Decoration charges is required!!"],
-    },
 
     logo: {
       type: {},
@@ -31,7 +23,11 @@ const theaterSchema = new mongoose.Schema(
         {
           start: String,
           end: String,
-          required: String,
+          theaterPrice: Number,
+          decorationPrice: Number,
+          price: Number,
+          offerPrice: Number,
+
           isBooked: {
             type: Boolean,
             default: false,
@@ -42,16 +38,19 @@ const theaterSchema = new mongoose.Schema(
     },
     location: {
       type: String,
-      required: true,
+      // required: true,
     },
     occupancyDetails: {
-      minOccupancy: {
+      max: {
+        type: Number,
+      },
+      maxPaid: {
         type: Number,
       },
 
       extraCharges: {
         type: Number,
-        required: [true, "Extra charges field is required!!"],
+        // required: [true, "Extra charges field is required!!"],
       },
     },
   },

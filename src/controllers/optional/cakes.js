@@ -19,5 +19,6 @@ export const getAllCakes = asyncHandler(async (req, res, next) => {
 });
 
 export const deleteCake = asyncHandler(async (req, res, next) => {
-  const isValidId = await cakes.find;
+  const isValidId = await cakes.findByIdAndDelete(req?.params?.id);
+  res.status(200).json({ status: true, message: "Deleted successfully!!" });
 });
