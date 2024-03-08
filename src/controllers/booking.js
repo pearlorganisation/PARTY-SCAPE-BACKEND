@@ -18,8 +18,6 @@ export const bookingOrder = asyncHandler(async (req, res, next) => {
 });
 
 export const verifyOrder = asyncHandler(async (req, res) => {
-  console.log(req?.body, "fst");
-  console.log(req?.body.payload.payment.entity.notes, "second");
   const { razorpay_order_id, razorpay_payment_id, razorpay_signature } =
     req.body;
 
