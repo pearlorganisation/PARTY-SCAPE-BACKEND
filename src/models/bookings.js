@@ -20,9 +20,9 @@ const bookingSchema = new mongoose.Schema(
       type: mongoose.Types.ObjectId,
       ref: "ceremonyType",
     },
-    user: {
-      type: mongoose.Types.ObjectId,
-      ref: "auth",
+    user: { type: String },
+    number: {
+      type: Number,
     },
     theater: {
       type: mongoose.Types.ObjectId,

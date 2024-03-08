@@ -17,10 +17,6 @@ const cakeSchema = new mongoose.Schema(
       type: Boolean,
       required: [true, "isEgless field is required!!"],
     },
-    for: {
-      type: String,
-      required: true,
-    },
   },
   { timestamps: true }
 );

@@ -1,7 +1,13 @@
 import express from "express";
-import { bookingOrder, verifyOrder } from "../controllers/booking.js";
+import {
+  bookingOrder,
+  getSingleBooking,
+  verifyOrder,
+} from "../controllers/booking.js";
 
 const router = express.Router();
 router.post("/bookingOrder", bookingOrder);
-router.route("/verifyOrder").post(verifyOrder);
+router.post("/verifyOrder", verifyOrder);
+router.route("/bookings/:id").get(getSingleBooking);
+
 export default router;
