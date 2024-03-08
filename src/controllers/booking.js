@@ -38,8 +38,6 @@ export const verifyOrder = asyncHandler(async (req, res) => {
     razorpay_payment_id,
     razorpay_signature,
   });
-  const redirectUrl =
-    process.env.working_enviroment == "Production" ? "hello" : "Not hello";
 
   res.redirect(
     `${process.env.FRONTEND_LIVE_URL}/bookedSuccessfull/${data?._id}`
