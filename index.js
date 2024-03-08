@@ -22,16 +22,14 @@ app.use(
             "http://localhost:4113",
             "http://localhost:5173",
             "http://localhost:4114",
-            "https://development.pearl-developer.com",
-            "https://trade-fair-india.vercel.app",
-            "https://trade-fair-india-admin.vercel.app",
-            "https://trade-fair-india-shop-panel.vercel.app",
+            "https://party-scape-frontend-l4ej7li9q-pearlorganisation.vercel.app",
           ],
           credentials: true,
         }
       : {
           origin: [
             "http://localhost:4112",
+            " https://party-scape-frontend-l4ej7li9q-pearlorganisation.vercel.app",
             "http://localhost:5173",
             "http://localhost:5010",
             "http://localhost:4113",

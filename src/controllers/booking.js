@@ -39,9 +39,7 @@ export const verifyOrder = asyncHandler(async (req, res) => {
     razorpay_signature,
   });
 
-  res.redirect(
-    `${process.env.FRONTEND_LIVE_URL}/bookedSuccessfull/${data?._id}`
-  );
+  res.redirect(`${process.env.FRONTEND_LIVE_URL}/paymentSuccess/${data?._id}`);
 });
 
 export const getSingleBooking = asyncHandler(async (req, res) => {
