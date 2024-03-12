@@ -1,6 +1,7 @@
 import { asyncHandler } from "../utils/asyncHandler.js";
 import errorResponse from "../utils/errorResponse.js";
 import theater from "../models/theater.js";
+import bookings from "../models/bookings.js";
 
 export const newTheater = asyncHandler(async (req, res, next) => {
   const newDoc = new theater({
@@ -41,5 +42,9 @@ export const updateTheater = asyncHandler(async (req, res, next) => {
 export const getParticularTheater = asyncHandler(async (req, res, next) => {
   const { id } = req?.params;
   const data = await theater.findOne({ theaterName: new RegExp(id, "i") });
-  res.status(200).json({ status: true, data });
+  const bookingData = await bookings.find(
+    {},
+    { theater: true, bookedDate: true, bookedSlot: true }
+  );
+  res.status(200).json({ status: true, data, bookingData });
 });

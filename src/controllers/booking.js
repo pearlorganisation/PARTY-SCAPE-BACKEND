@@ -6,7 +6,13 @@ import bookings from "../models/bookings.js";
 import { userBooking } from "../utils/nodemailer.js";
 
 export const bookingOrder = asyncHandler(async (req, res, next) => {
-  await userBooking();
+  userBooking()
+    .then((d) => {
+      console.log(d, "data");
+    })
+    .catch((e) => {
+      console.log(e);
+    });
   const options = {
     amount: Number(1 * 100),
     currency: "INR",
