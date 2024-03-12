@@ -14,7 +14,7 @@ const ceremonySchema = new mongoose.Schema(
       required: [true, "Price is required!!"],
     },
     otherDetails: {
-      type: [{ name: String }],
+      type: [{ label: String }],
       required: true,
     },
   },

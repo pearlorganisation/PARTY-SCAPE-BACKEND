@@ -3,9 +3,10 @@ import errorResponse from "../../utils/errorResponse.js";
 import ceremonyType from "../../models/optional/ceremonyType.js";
 
 export const newCeremonyType = asyncHandler(async (req, res, next) => {
+  console.log(req?.file);
   const newDoc = new ceremonyType({
     ...req?.body,
-    logo: req?.file?.path,
+    // logo: req?.file?.path,
     otherDetails: JSON.parse(req?.body?.otherDetails),
   });
   await newDoc.save();
