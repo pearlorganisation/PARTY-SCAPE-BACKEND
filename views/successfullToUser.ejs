@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Booking Confirmation</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f5f5f5;
+            text-align: center;
+            margin: 50px;
+        }
+        form {
+            max-width: 400px;
+            margin: 0 auto;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        input {
+            width: 100%;
+            padding: 10px;
+            margin: 8px 0;
+            box-sizing: border-box;
+        }
+        button {
+            background-color: #4caf50;
+            color: #fff;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .success-message {
+            color: #4caf50;
+            font-size: 18px;
+            margin-top: 20px;
+        }
+        .thank-you {
+            margin-top: 20px;
+            font-size: 16px;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <form>
+        <h2>Booking Information</h2>
+        <label for="name">Name:</label>
+        <input type="text" id="name" name="name" value="<%= name %>">
+
+        <label for="email">Email:</label>
+        <input type="email" id="email" name="email" value="<%= email %>">
+
+        <label for="number">Number:</label>
+        <input type="tel" id="number" name="number" value="<%= number %>">
+
+        <button type="submit">Confirm Booking</button>
+    </form>
+
+    <% if (bookingSuccess) { %>
+        <p class="success-message">You have successfully booked a theater!</p>
+    <% } %>
+
+    <div class="thank-you">
+        <p>Thank you for choosing Partyscape. We look forward to hosting your event!</p>
+    </div>
+</body>
+</html>

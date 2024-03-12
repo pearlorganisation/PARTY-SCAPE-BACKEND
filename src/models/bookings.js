@@ -6,13 +6,25 @@ const bookingSchema = new mongoose.Schema(
       type: mongoose.Types.ObjectId,
       ref: "cakes",
     },
+    addOns: {
+      type: [{ title: String, price: Number }],
+    },
+    bookedDate: {
+      type: String,
+      required: ["Booking date is required!!"],
+    },
+    bookedSlot: {
+      type: String,
+      required: ["Booked slot is required!!"],
+    },
+
     razorpay_payment_id: {
       type: String,
     },
     razorpay_order_id: {
       type: String,
     },
-    razorpay_order_id: {
+    razorpay_payment_id: {
       type: String,
     },
 
@@ -20,13 +32,19 @@ const bookingSchema = new mongoose.Schema(
       type: mongoose.Types.ObjectId,
       ref: "ceremonyType",
     },
-    user: { type: String },
-    number: {
-      type: Number,
+    bookedBy: {
+      name: String,
+      email: String,
+      whatsappNumber: String,
     },
+
     theater: {
       type: mongoose.Types.ObjectId,
       ref: "theater",
+    },
+    remainingPrice: {
+      type: Number,
+      required: [true, "Remaining price is required!!"],
     },
   },
   { timestamps: true }

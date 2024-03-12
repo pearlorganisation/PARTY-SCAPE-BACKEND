@@ -37,3 +37,9 @@ export const updateTheater = asyncHandler(async (req, res, next) => {
 
   await theater.findByIdAndUpdate();
 });
+
+export const getParticularTheater = asyncHandler(async (req, res, next) => {
+  const { id } = req?.params;
+  const data = await theater.findOne({ theaterName: new RegExp(id, "i") });
+  res.status(200).json({ status: true, data });
+});
