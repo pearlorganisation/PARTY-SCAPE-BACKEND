@@ -6,26 +6,25 @@ import bookings from "../models/bookings.js";
 import { userBooking } from "../utils/nodemailer.js";
 
 export const bookingOrder = asyncHandler(async (req, res, next) => {
-  userBooking()
-    .then((d) => {
-      console.log(d, "data");
-    })
-    .catch((e) => {
-      console.log(e);
-    });
   const options = {
     amount: Number(1 * 100),
     currency: "INR",
   };
+  console.log(req?.body);
+
   const newBooking = await bookings.create({
-    ceremonyType: req?.body?.selectCeremony?._id,
-    cake: req?.body?.selectedCake?._id,
-    bookingSlot: req?.body?.slot,
-    remainingPrice: req?.body?.theaterPrice,
+    ceremonyType: req?.body?.data?.selectCeremony?._id,
+    addOns: req?.body?.data?.selectedAddOns,
+    bookedBy: req?.body?.userDetail?.bookedBy,
+    cake: req?.body?.data?.selectedCake?._id,
+
+    bookedSlot: req?.body?.data?.slot,
+    remainingPrice: req?.body?.data?.offerPrice,
     theater: req?.body?.theater,
-    totalPeople: req?.body?.NoOfpeople,
-    bookedDate: req?.body?.date,
+    totalPeople: req?.body?.data?.NoOfpeople,
+    bookedDate: req?.body?.data?.date,
   });
+
   const order = await razorpayInstance.orders.create(options);
 
   res.status(200).json({
@@ -40,7 +39,7 @@ export const verifyOrder = asyncHandler(async (req, res) => {
     req.body;
 
   const body = razorpay_order_id + "|" + razorpay_payment_id;
-  await bookings.findByIdAndUpdate({
+  const data = await bookings.findByIdAndUpdate(req?.params?.id, {
     razorpay_order_id,
     razorpay_payment_id,
     razorpay_payment_id,
@@ -55,8 +54,10 @@ export const verifyOrder = asyncHandler(async (req, res) => {
   if (!isAuthentic) {
     return res.status(400).json({ status: 400, message: "Payment failed!!" });
   }
-  userBooking();
-  await res.redirect(`http://localhost:5173/paymentSuccess/${data?._id}`);
+  // userBooking();
+  await res.redirect(
+    `${process.env.FRONTEND_LIVE_URL}/paymentSuccess/${data?._id}`
+  );
 });
 
 export const getSingleBooking = asyncHandler(async (req, res) => {

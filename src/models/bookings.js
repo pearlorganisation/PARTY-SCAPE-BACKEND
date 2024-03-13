@@ -7,7 +7,10 @@ const bookingSchema = new mongoose.Schema(
       ref: "cakes",
     },
     addOns: {
-      type: [{ title: String, price: Number }],
+      type: [],
+    },
+    totalPeople: {
+      type: String,
     },
     bookedDate: {
       type: String,
