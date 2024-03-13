@@ -8,7 +8,7 @@ import { dirname } from "path";
 
 // -----------------------------------------------------------------------------------------------------
 // sendMail - this method is used to send mail
-export const userBooking = async (email, url) => {
+export const userBooking = async (mailData) => {
   // transporter - configuration of admin/user to send mail from
   const transporter = nodemailer.createTransport({
     host: "smtp.gmail.com",
@@ -26,11 +26,11 @@ export const userBooking = async (email, url) => {
     `../../views/successfullToUser.ejs`
   );
 
-  let data = await ejs.renderFile(templatePath, { url });
+  let data = await ejs.renderFile(templatePath, { mailData });
   //   mailOptions - details of the user to whom the mail needs to be delievered
   let mailOptions = {
     from: process.env.NODEMAILER_MAIL,
-    to: "saurabh@pearlorganisation.com",
+    to: mailData?.bookedBy?.email,
     subject: "Theater Booked successfully!!",
     html: data,
     // html: `<h1>Please Click the link below to change the password <br/>  ${url}</h1> <br/> <strong>This Link is valid for only 2 minutes</strong>`,

@@ -4,7 +4,7 @@ const bookingSchema = new mongoose.Schema(
   {
     cake: {
       type: mongoose.Types.ObjectId,
-      ref: "cakes",
+      ref: "cake",
     },
     addOns: {
       type: [],
@@ -47,7 +47,7 @@ const bookingSchema = new mongoose.Schema(
     },
     remainingPrice: {
       type: Number,
-      required: [true, "Remaining price is required!!"],
+      // required: [true, "Remaining price is required!!"],
     },
   },
   { timestamps: true }

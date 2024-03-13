@@ -21,6 +21,7 @@ app.use(
             "http://localhost:5010",
             "http://localhost:4113",
             "http://localhost:5173",
+            "http://localhost:5174",
             "http://localhost:4114",
             "https://party-scape-frontend.vercel.app",
             "https://party-scape-frontend-l4ej7li9q-pearlorganisation.vercel.app",
@@ -30,6 +31,7 @@ app.use(
       : {
           origin: [
             "http://localhost:4112",
+            "http://localhost:5174",
             " https://party-scape-frontend-l4ej7li9q-pearlorganisation.vercel.app",
             "http://localhost:5173",
             "http://localhost:5010",
