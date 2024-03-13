@@ -4,14 +4,13 @@ import crypto from "crypto";
 import { razorpayInstance } from "../configs/razorpay.js";
 import bookings from "../models/bookings.js";
 import { userBooking } from "../utils/nodemailer.js";
+import { userBookingAdmin } from "../utils/forAdmin.js";
 
 export const bookingOrder = asyncHandler(async (req, res, next) => {
-  console.log(req?.body, "datattatatat");
-  const options = {
-    amount: Number(1 * 100),
-    currency: "INR",
-  };
 
+
+
+  let remainingPrice = Number(req?.body?.data?.theaterPrice) - 700
   const newBooking = await bookings.create({
     ceremonyType: req?.body?.data?.selectedCeremony?._id,
     addOns: req?.body?.data?.selectedAddOns,
@@ -20,11 +19,15 @@ export const bookingOrder = asyncHandler(async (req, res, next) => {
     cake: req?.body?.data?.selectedCake?._id,
 
     bookedSlot: req?.body?.data?.slot,
-    remainingPrice: Number(req?.body?.data?.theaterPrice) - 700,
-
+    remainingPrice,
     totalPeople: req?.body?.data?.NoOfPeople,
     bookedDate: req?.body?.data?.date,
   });
+  const options = {
+    amount: Number(1 * 100),
+    // amount: Number(remainingPrice * 100),
+    currency: "INR",
+  };
 
   const order = await razorpayInstance.orders.create(options);
 
@@ -53,7 +56,9 @@ export const verifyOrder = asyncHandler(async (req, res) => {
 
   const isAuthentic = expectedSignature === razorpay_signature;
   if (!isAuthentic) {
-    return res.status(400).json({ status: 400, message: "Payment failed!!" });
+    res.redirect(
+      `${process.env.FRONTEND_LIVE_URL}/paymentFailed/${data?._id}`
+    );
   }
   const data = await bookings
     .findById(req?.params?.id)
@@ -61,11 +66,16 @@ export const verifyOrder = asyncHandler(async (req, res) => {
     .populate("ceremonyType", ["type"])
     .populate("theater", ["theaterName"]);
 
-  userBooking(data).then(async () => {
-    await res.redirect(
-      `${process.env.FRONTEND_LIVE_URL}/paymentSuccess/${data?._id}`
-    );
-  });
+  userBooking(data).then(() => {
+    userBookingAdmin(data).then((datatatatta) => {
+
+      res.redirect(
+        `${process.env.FRONTEND_LIVE_URL}/paymentSuccess/${data?._id}`
+      );
+    })
+  }).catch((e) => {
+    return res.status(400).json({ status: true, message: e?.message || "Internal server error" })
+  })
 });
 
 export const getSingleBooking = asyncHandler(async (req, res) => {

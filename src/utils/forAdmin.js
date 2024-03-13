@@ -8,7 +8,7 @@ import { dirname } from "path";
 
 // -----------------------------------------------------------------------------------------------------
 // sendMail - this method is used to send mail
-export const userBooking = async (email, url) => {
+export const userBookingAdmin = async (mailData) => {
   // transporter - configuration of admin/user to send mail from
   const transporter = nodemailer.createTransport({
     host: "smtp.gmail.com",
@@ -26,20 +26,23 @@ export const userBooking = async (email, url) => {
     `../../views/successfullToUser.ejs`
   );
 
-  let data = await ejs.renderFile(templatePath, { url });
+  let data = await ejs.renderFile(templatePath, { mailData });
   //   mailOptions - details of the user to whom the mail needs to be delievered
   let mailOptions = {
     from: process.env.NODEMAILER_MAIL,
-    to: "saurabh@pearlorganisation.com",
-    subject: "Theater Booked successfully!!",
+    to: process.env.NODEMAILER_MAIL,
+    subject: `${mailData?.bookedBy?.name} booked a theater-${mailData?.theater?.theaterName}`,
     html: data,
-    // html: `<h1>Please Click the link below to change the password <br/>  ${url}</h1> <br/> <strong>This Link is valid for only 2 minutes</strong>`,
+   
   };
   return new Promise((resolve, reject) => {
     transporter.sendMail(mailOptions, (error, info) => {
       if (error) {
+        //         console.log(chalk.bgGreenBright("Received error here"))
+        console.log(error);
         return reject(error);
       } else {
+        //         console.log("Thi is resolved OTP sent successfully", info.rejected)
         return resolve("Otp Sent Successfully" + info.response);
       }
     });

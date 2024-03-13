@@ -103,7 +103,7 @@
             <label for="theater">Theater:</label>
             <input type="text" id="theater" name="theater" value="<%= mailData?.theater?.theaterName %>">
             <label for="theater">Slot:</label>
-            <input type="text" id="theater" name="theater" value="<%= mailData?.theater?.theaterName %>">
+            <input type="text" id="theater" name="theater" value="<%= mailData?.bookedSlot %>">
             <label for="number">Number:</label>
             <input type="tel" id="number" name="number" value="<%= mailData?.bookedBy?.whatsappNumber %>">
             <label for="cake">Cake:</label>
@@ -116,20 +116,23 @@
     </section>
 
     <!-- Add-ons Section -->
-    <section>
-        <h2>Add-ons</h2>
-        <div class="addons-container">
-            <% mailData.addOns.forEach(function(addOn) { %>
-                <div class="addon">
-                    <img src="<%= addOn.img %>" alt="<%= addOn.title %>">
-                    <p><strong>
-                            <%= addOn.title %>
-                        </strong><br>$<%= addOn.price %>
-                    </p>
-                </div>
+    <% if (mailData?.addOns && mailData?.addOns?.length > 0) { %>
+        <section>
+            <h2>Add-ons</h2>
+            <div class="addons-container">
+                <% mailData?.addOns?.forEach(function(addOn) { %>
+                    <div class="addon">
+                        <img src="<%= addOn.img %>" alt="<%= addOn.title %>">
+                        <p><strong>
+                                <%= addOn.title %>
+                            </strong><br>$<%= addOn.price %>
+                        </p>
+                    </div>
                 <% }); %>
-        </div>
-    </section>
+            </div>
+        </section>
+    <% } %>
+    
     <div class="thank-you">
         <p>Thank you for choosing Partyscape. We look forward to hosting your event!</p>
     </div>

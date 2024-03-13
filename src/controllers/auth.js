@@ -3,7 +3,7 @@ import errorResponse from "../utils/errorResponse.js";
 import authModel from "../models/auth.js";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
-import { saveAccessTokenToCookie } from "../utils/others.js";
+// import { saveAccessTokenToCookie } from "../utils/others.js";
 
 export const signup = asyncHandler(async (req, res, next) => {
   const { password } = req?.body;
@@ -44,7 +44,7 @@ export const login = asyncHandler(async (req, res, next) => {
     { expiresIn: process.env.ACCESS_TOKEN_VALIDITY }
   );
 
-  saveAccessTokenToCookie(isDataExists?.role, res, accessToken);
+  // saveAccessTokenToCookie(isDataExists?.role, res, accessToken);
 
   res
     .status(200)
