@@ -112,16 +112,17 @@
             <input type="text" id="ceremony" name="ceremony" value="<%= mailData?.ceremonyType?.type %>">
 
             <!-- Ceremony Type Section -->
-            <% if (mailData?.ceremonyType) { %>
+            <% if (mailData?.ceremonyTypeLabels) { %>
                 <section>
-                    <h2>Ceremony Type</h2>
-                    <% if (mailData.ceremonyType.labels && mailData.ceremonyType.labels.length> 0) { %>
+                    <% if (mailData.ceremonyTypeLabels && mailData.ceremonyTypeLabels.length> 0) {
+                        %>
+                        <h2>Ceremony Details-:</h2>
                         <form>
-                            <% mailData.ceremonyType.labels.forEach(function(label) { %>
+                            <% mailData.ceremonyTypeLabels.forEach(function(label) { %>
                                 <label for="<%= label.name %>">
-                                    <%= label.name %>:
+                                    <%= label.label %>:
                                 </label>
-                                <input type="text" id="<%= label.name %>" name="<%= label.name %>"
+                                <input type="text" id="<%= label.name %>" name="<%= label.label %>"
                                     value="<%= label.value %>">
                                 <% }); %>
                         </form>

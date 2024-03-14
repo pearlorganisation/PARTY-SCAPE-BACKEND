@@ -14,7 +14,7 @@ export const bookingOrder = asyncHandler(async (req, res, next) => {
     theater: req?.body?.data?.theaterId,
     bookedBy: req?.body?.userDetail?.bookedBy,
     cake: req?.body?.data?.selectedCake?._id,
-    ceremonyTypeLabels: req?.body?.data?.selectedCeremony?.label,
+    ceremonyTypeLabels: req?.body?.data?.selectedCeremonyLabels,
 
     bookedSlot: req?.body?.data?.slot,
     remainingPrice,
