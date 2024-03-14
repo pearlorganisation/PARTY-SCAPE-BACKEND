@@ -7,16 +7,14 @@ import { userBooking } from "../utils/nodemailer.js";
 import { userBookingAdmin } from "../utils/forAdmin.js";
 
 export const bookingOrder = asyncHandler(async (req, res, next) => {
-
-
-
-  let remainingPrice = Number(req?.body?.data?.theaterPrice) - 700
+  let remainingPrice = Number(req?.body?.data?.theaterPrice) - 700;
   const newBooking = await bookings.create({
     ceremonyType: req?.body?.data?.selectedCeremony?._id,
     addOns: req?.body?.data?.selectedAddOns,
     theater: req?.body?.data?.theaterId,
     bookedBy: req?.body?.userDetail?.bookedBy,
     cake: req?.body?.data?.selectedCake?._id,
+    ceremonyTypeLabels: req?.body?.data?.selectedCeremony?.label,
 
     bookedSlot: req?.body?.data?.slot,
     remainingPrice,
@@ -56,9 +54,7 @@ export const verifyOrder = asyncHandler(async (req, res) => {
 
   const isAuthentic = expectedSignature === razorpay_signature;
   if (!isAuthentic) {
-    res.redirect(
-      `${process.env.FRONTEND_LIVE_URL}/paymentFailed/${data?._id}`
-    );
+    res.redirect(`${process.env.FRONTEND_LIVE_URL}/paymentFailed/`);
   }
   const data = await bookings
     .findById(req?.params?.id)
@@ -66,16 +62,17 @@ export const verifyOrder = asyncHandler(async (req, res) => {
     .populate("ceremonyType", ["type"])
     .populate("theater", ["theaterName"]);
 
-  userBooking(data).then(() => {
-    userBookingAdmin(data).then((datatatatta) => {
-
-      res.redirect(
-        `${process.env.FRONTEND_LIVE_URL}/paymentSuccess/${data?._id}`
-      );
+  userBooking(data)
+    .then(() => {
+      userBookingAdmin(data).then((datatatatta) => {
+        res.redirect(`${process.env.FRONTEND_LIVE_URL}/paymentSuccess`);
+      });
     })
-  }).catch((e) => {
-    return res.status(400).json({ status: true, message: e?.message || "Internal server error" })
-  })
+    .catch((e) => {
+      return res
+        .status(400)
+        .json({ status: true, message: e?.message || "Internal server error" });
+    });
 });
 
 export const getSingleBooking = asyncHandler(async (req, res) => {

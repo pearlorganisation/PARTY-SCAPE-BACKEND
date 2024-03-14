@@ -42,9 +42,24 @@ export const updateTheater = asyncHandler(async (req, res, next) => {
 export const getParticularTheater = asyncHandler(async (req, res, next) => {
   const { id } = req?.params;
   const data = await theater.findOne({ theaterName: new RegExp(id, "i") });
-  const bookingData = await bookings.find(
-    {},
-    { theater: true, bookedDate: true, bookedSlot: true }
-  );
-  res.status(200).json({ status: true, data, bookingData });
+  const bookingData = await bookings
+    .find({}, { theater: true, bookedDate: true, bookedSlot: true })
+    .populate("theater", ["theaterName"]);
+  const bookedSlots = [];
+
+  bookingData.forEach((booking) => {
+    const { bookedDate, bookedSlot } = booking;
+
+    const existingSlotIndex = bookedSlots.findIndex(
+      (slot) => slot.date === bookedDate
+    );
+
+    if (existingSlotIndex !== -1) {
+      bookedSlots[existingSlotIndex].slots.push(bookedSlot);
+    } else {
+      bookedSlots.push({ date: bookedDate, slots: [bookedSlot] });
+    }
+  });
+
+  res.status(200).json({ status: true, data, bookedSlots });
 });

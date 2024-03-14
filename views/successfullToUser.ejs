@@ -110,13 +110,32 @@
             <input type="text" id="cake" name="cake" value="<%= mailData?.cake?.name %>">
             <label for="ceremony">Ceremony:</label>
             <input type="text" id="ceremony" name="ceremony" value="<%= mailData?.ceremonyType?.type %>">
-            <label for="price">Remaining price:</label>
-            <input type="text" id="price" name="price" value="<%= mailData?.remainingPrice%>">
+
+            <!-- Ceremony Type Section -->
+            <% if (mailData?.ceremonyType) { %>
+                <section>
+                    <h2>Ceremony Type</h2>
+                    <% if (mailData.ceremonyType.labels && mailData.ceremonyType.labels.length> 0) { %>
+                        <form>
+                            <% mailData.ceremonyType.labels.forEach(function(label) { %>
+                                <label for="<%= label.name %>">
+                                    <%= label.name %>:
+                                </label>
+                                <input type="text" id="<%= label.name %>" name="<%= label.name %>"
+                                    value="<%= label.value %>">
+                                <% }); %>
+                        </form>
+                        <% } %>
+                </section>
+                <% } %>
+
+                    <label for="price">Remaining price:</label>
+                    <input type="text" id="price" name="price" value="<%= mailData?.remainingPrice%>">
         </form>
     </section>
 
     <!-- Add-ons Section -->
-    <% if (mailData?.addOns && mailData?.addOns?.length > 0) { %>
+    <% if (mailData?.addOns && mailData?.addOns?.length> 0) { %>
         <section>
             <h2>Add-ons</h2>
             <div class="addons-container">
@@ -128,14 +147,14 @@
                             </strong><br>$<%= addOn.price %>
                         </p>
                     </div>
-                <% }); %>
+                    <% }); %>
             </div>
         </section>
-    <% } %>
-    
-    <div class="thank-you">
-        <p>Thank you for choosing Partyscape. We look forward to hosting your event!</p>
-    </div>
+        <% } %>
+
+            <div class="thank-you">
+                <p>Thank you for choosing Partyscape. We look forward to hosting your event!</p>
+            </div>
 </body>
 
 </html>

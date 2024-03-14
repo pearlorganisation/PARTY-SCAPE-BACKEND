@@ -40,6 +40,9 @@ const bookingSchema = new mongoose.Schema(
       email: String,
       whatsappNumber: String,
     },
+    ceremonyTypeLabels: {
+      type: [],
+    },
 
     theater: {
       type: mongoose.Types.ObjectId,
