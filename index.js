@@ -25,6 +25,7 @@ app.use(
             "http://localhost:4114",
             "https://party-scape-frontend.vercel.app",
             "https://party-scape-frontend-l4ej7li9q-pearlorganisation.vercel.app",
+	    "http://91.108.104.196"
           ],
           credentials: true,
         }
@@ -38,6 +39,7 @@ app.use(
             "https://party-scape-frontend.vercel.app",
             "http://localhost:4113",
             "http://localhost:4114",
+	    "http://91.108.104.196"
           ],
           methods: ["GET", "PUT", "POST", "PATCH", "DELETE"],
           allowedHeaders: ["Content-Type", "Authorization", "x-csrf-token"],
