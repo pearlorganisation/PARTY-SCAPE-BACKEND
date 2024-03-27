@@ -5,6 +5,7 @@ import { razorpayInstance } from "../configs/razorpay.js";
 import bookings from "../models/bookings.js";
 import { userBooking } from "../utils/nodemailer.js";
 import { userBookingAdmin } from "../utils/forAdmin.js";
+import { error } from "console";
 
 export const bookingOrder = asyncHandler(async (req, res, next) => {
   let remainingPrice = Number(req?.body?.data?.theaterPrice) - 700;
@@ -22,7 +23,7 @@ export const bookingOrder = asyncHandler(async (req, res, next) => {
     bookedDate: req?.body?.data?.date,
   });
   const options = {
-    amount: Number(remainingPrice * 100),
+    amount: Number(750 * 100),
     currency: "INR",
   };
 
@@ -83,6 +84,28 @@ export const getAllBookings = asyncHandler(async (req, res) => {
   res.status(200).json({ status: true, data });
 });
 
-// export const refund = asyncHandler(async (req, res) => {
-//   // const bookingData= await
-// });
+export const refund = asyncHandler(async (req, res, next) => {
+  const existingBooking = await bookings.findById(req?.body?.bookingId);
+  razorpayInstance.payments.refund(
+    existingBooking?.razorpay_payment_id,
+    {
+      amount: 50,
+      speed: "normal",
+      notes: {
+        reason: "Customer requested refund",
+      },
+    },
+    function (error, refund) {
+      if (error) {
+        console.log(error);
+        return next(
+          new errorResponse(
+            error?.error?.description || "Something went wrong !!"
+          )
+        );
+      }
+
+      res.status(200).json({ status: true, message: refund });
+    }
+  );
+});
