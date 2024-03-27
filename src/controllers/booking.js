@@ -22,8 +22,7 @@ export const bookingOrder = asyncHandler(async (req, res, next) => {
     bookedDate: req?.body?.data?.date,
   });
   const options = {
-    amount: Number(1 * 100),
-    // amount: Number(remainingPrice * 100),
+    amount: Number(remainingPrice * 100),
     currency: "INR",
   };
 
@@ -78,3 +77,12 @@ export const getSingleBooking = asyncHandler(async (req, res) => {
   const data = await bookings.findById(req?.params?.id);
   res.status(200).json({ status: true, data });
 });
+
+export const getAllBookings = asyncHandler(async (req, res) => {
+  const data = await bookings.find();
+  res.status(200).json({ status: true, data });
+});
+
+// export const refund = asyncHandler(async (req, res) => {
+//   // const bookingData= await
+// });
