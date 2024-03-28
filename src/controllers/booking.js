@@ -89,7 +89,7 @@ export const refund = asyncHandler(async (req, res, next) => {
   razorpayInstance.payments.refund(
     existingBooking?.razorpay_payment_id,
     {
-      amount: 50,
+      amount: 700,
       speed: "normal",
       notes: {
         reason: "Customer requested refund",
