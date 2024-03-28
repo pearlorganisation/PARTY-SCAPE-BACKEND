@@ -20,6 +20,10 @@ const bookingSchema = new mongoose.Schema(
       type: String,
       required: ["Booked slot is required!!"],
     },
+    price: {
+      type: Number,
+      required: true,
+    },
 
     razorpay_payment_id: {
       type: String,

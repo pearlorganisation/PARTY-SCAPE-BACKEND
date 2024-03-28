@@ -66,14 +66,8 @@
             border-radius: 8px;
             margin: 10px;
             padding: 15px;
-            width: 200px;
+            width: 100%;
             text-align: center;
-        }
-
-        .addon img {
-            max-width: 100%;
-            border-radius: 8px;
-            margin-bottom: 10px;
         }
 
         .addon p {
@@ -82,15 +76,10 @@
             color: #333;
         }
 
-        /* Mobile responsiveness */
         @media screen and (max-width: 600px) {
             section {
                 margin: 10px;
                 padding: 10px;
-            }
-
-            .addon {
-                width: 100%;
             }
         }
     </style>
@@ -174,9 +163,21 @@
             <% } %>
 
                 <div class="data-item">
-                    <span class="data-label">Remaining price:</span>
+                    <span class="data-label">Advance Payment:</span>
+                    <span class="data-value">
+                        700
+                    </span>
+                </div>
+                <div class="data-item">
+                    <span class="data-label">Remaining Payment:</span>
                     <span class="data-value">
                         <%= mailData?.remainingPrice %>
+                    </span>
+                </div>
+                <div class="data-item">
+                    <span class="data-label">Total Price:</span>
+                    <span class="data-value">
+                        <%= mailData?.price %>
                     </span>
                 </div>
     </section>
@@ -188,10 +189,10 @@
             <div class="addons-container">
                 <% mailData?.addOns?.forEach(function(addOn) { %>
                     <div class="addon">
-                        <img src="<%= addOn.img %>" alt="<%= addOn.title %>">
                         <p><strong>
                                 <%= addOn.title %>
-                            </strong><br>$<%= addOn.price %>
+                            </strong><br>
+                            <%= addOn.price %>
                         </p>
                     </div>
                     <% }); %>

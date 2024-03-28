@@ -12,6 +12,7 @@ export const bookingOrder = asyncHandler(async (req, res, next) => {
   const newBooking = await bookings.create({
     ceremonyType: req?.body?.data?.selectedCeremony?._id,
     addOns: req?.body?.data?.selectedAddOns,
+    price: req?.body?.data?.theaterPrice,
     theater: req?.body?.data?.theaterId,
     bookedBy: req?.body?.userDetail?.bookedBy,
     cake: req?.body?.data?.selectedCake?._id,
@@ -55,7 +56,7 @@ export const verifyOrder = asyncHandler(async (req, res) => {
   if (!isAuthentic) {
     res.redirect(`${process.env.FRONTEND_LIVE_URL}/paymentFailed/`);
   }
-  const data = await bookings
+  let data = await bookings
     .findById(req?.params?.id)
     .populate("cake", ["name"])
     .populate("ceremonyType", ["type"])
@@ -63,7 +64,7 @@ export const verifyOrder = asyncHandler(async (req, res) => {
 
   userBooking(data)
     .then(() => {
-      userBookingAdmin(data).then((datatatatta) => {
+      userBookingAdmin(data).then(() => {
         res.redirect(`${process.env.FRONTEND_LIVE_URL}/paymentSuccess`);
       });
     })
