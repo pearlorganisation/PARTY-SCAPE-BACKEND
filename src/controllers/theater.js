@@ -42,8 +42,9 @@ export const updateTheater = asyncHandler(async (req, res, next) => {
 export const getParticularTheater = asyncHandler(async (req, res, next) => {
   const { id } = req?.params;
   const data = await theater.findOne({ theaterName: new RegExp(id, "i") });
+  // console.log(data)
   const bookingData = await bookings
-    .find({}, { theater: true, bookedDate: true, bookedSlot: true })
+    .find({theater: data?._id}, { theater: true, bookedDate: true, bookedSlot: true })
     .populate("theater", ["theaterName"]);
   const bookedSlots = [];
 
