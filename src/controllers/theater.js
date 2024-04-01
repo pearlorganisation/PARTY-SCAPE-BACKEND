@@ -31,12 +31,15 @@ export const deleteTheater = asyncHandler(async (req, res, next) => {
 
 export const updateTheater = asyncHandler(async (req, res, next) => {
   const { id } = req?.params;
-  const existingData = await theater.findById();
+  const existingData = await theater.findById(id);
   if (!existingData) {
     return next(new errorResponse("No data found with given id!!", 400));
   }
 
-  await theater.findByIdAndUpdate();
+  await theater.findByIdAndUpdate(id, {
+    ...req?.body,
+    logo: req?.files?.logo[0] || existingData?.logo,
+  });
 });
 
 export const getParticularTheater = asyncHandler(async (req, res, next) => {

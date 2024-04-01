@@ -24,7 +24,11 @@ export const deleteCake = asyncHandler(async (req, res, next) => {
 });
 
 export const updateCake = asyncHandler(async (req, res, next) => {
-  const data = await cakes.findByIdAndUpdate(req?.params?.id, req?.body);
+  const existingData = await cakes.findById(req?.params?.id);
+  const data = await cakes.findByIdAndUpdate(req?.params?.id, {
+    cake: req?.file?.path || existingData?.image,
+    ...req?.body,
+  });
   if (!data)
     return next(new errorResponse("No data found with given id!!", 400));
 
