@@ -22,3 +22,11 @@ export const deleteCake = asyncHandler(async (req, res, next) => {
   const isValidId = await cakes.findByIdAndDelete(req?.params?.id);
   res.status(200).json({ status: true, message: "Deleted successfully!!" });
 });
+
+export const updateCake = asyncHandler(async (req, res, next) => {
+  const data = await cakes.findByIdAndUpdate(req?.params?.id, req?.body);
+  if (!data)
+    return next(new errorResponse("No data found with given id!!", 400));
+
+  res.status(200).json({ status: true, message: "Updated successfully!!" });
+});

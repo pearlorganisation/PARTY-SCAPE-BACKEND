@@ -10,7 +10,7 @@ const cakeSchema = new mongoose.Schema(
       required: [true, "cake image is required!!"],
     },
     price: {
-      type: Number,
+      type: [{ weight: String, price: Number }],
       required: [true, "Price is required!!"],
     },
     isEggless: {

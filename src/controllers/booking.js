@@ -86,7 +86,9 @@ export const getAllBookings = asyncHandler(async (req, res) => {
 });
 
 export const refund = asyncHandler(async (req, res, next) => {
-  const existingBooking = await bookings.findById(req?.body?.bookingId);
+  const existingBooking = await bookings.findOne({
+    bookingId: req?.body?.bookingId,
+  });
   razorpayInstance.payments.refund(
     existingBooking?.razorpay_payment_id,
     {
@@ -106,7 +108,7 @@ export const refund = asyncHandler(async (req, res, next) => {
         );
       }
 
-      res.status(200).json({ status: true, message: refund });
+      res.status(200).json({ status: true, refund });
     }
   );
 });

@@ -33,7 +33,6 @@ export const userBookingAdmin = async (mailData) => {
     to: process.env.NODEMAILER_MAIL,
     subject: `${mailData?.bookedBy?.name} booked a theater-${mailData?.theater?.theaterName}`,
     html: data,
-   
   };
   return new Promise((resolve, reject) => {
     transporter.sendMail(mailOptions, (error, info) => {
