@@ -81,7 +81,7 @@ export const getSingleBooking = asyncHandler(async (req, res) => {
 });
 
 export const getAllBookings = asyncHandler(async (req, res) => {
-  const data = await bookings.find();
+  const data = await bookings.find().populate("theater", ["theater"]);
   res.status(200).json({ status: true, data });
 });
 
