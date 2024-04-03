@@ -47,6 +47,10 @@ app.use(
         }
   )
 );
+
+// for reminder message
+// app.use;
+
 import theaterRoutes from "./src/routes/theater.js";
 import addOnsRoutes from "./src/routes/optional/addOns.js";
 import cakeRoutes from "./src/routes/optional/cake.js";

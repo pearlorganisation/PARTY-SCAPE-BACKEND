@@ -15,7 +15,7 @@ router
 
 router
   .route("/:id")
-  .patch(upload.fields([{ name: "logo" }, { name: "gallery" }], updateTheater))
+  .patch(upload.fields([{ name: "logo" }, { name: "gallery" }]), updateTheater)
   .delete(deleteTheater)
   .get(getParticularTheater);
 

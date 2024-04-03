@@ -38,8 +38,15 @@ export const updateTheater = asyncHandler(async (req, res, next) => {
 
   await theater.findByIdAndUpdate(id, {
     ...req?.body,
+    occupancyDetails:
+      existingData?.occupancyDetails || JSON.parse(req?.body?.occupancyDetails),
+    features: existingData?.features || JSON.parse(req?.body?.features),
+    slots: existingData?.slots || JSON.parse(req?.body?.slots),
+    logo: Array.isArray(req?.files?.logo) && req?.files?.logo[0],
+    gallery: req?.files?.gallery,
     logo: req?.files?.logo[0] || existingData?.logo,
   });
+  res.status(200).json({ status: true, message: "Updated Successfully!!" });
 });
 
 export const getParticularTheater = asyncHandler(async (req, res, next) => {
