@@ -48,18 +48,17 @@ app.use(
   )
 );
 
-// for reminder message
-// app.use;
-
 import theaterRoutes from "./src/routes/theater.js";
 import addOnsRoutes from "./src/routes/optional/addOns.js";
 import cakeRoutes from "./src/routes/optional/cake.js";
 import bookingRoutes from "./src/routes/bookings.js";
 import authRoutes from "./src/routes/auth.js";
+import prospectiveCustomersRoutes from "./src/routes/prospectiveCustomers.js";
 import ceremonyTypeRoutes from "./src/routes/optional/ceremonyType.js";
 import { error } from "./src/middlewares/error.js";
 
 app.use("/api/v1/auth", authRoutes);
+app.use("/api/v1/prospectiveCustomers", prospectiveCustomersRoutes);
 app.use("/api/v1/bookings", bookingRoutes);
 app.use("/api/v1/cake", cakeRoutes);
 app.use("/api/v1/theater", theaterRoutes);
