@@ -6,13 +6,12 @@ export const verifyTokenMiddleware = async (req, res, next) => {
   try {
     const cookies = req?.cookies;
 
-    const access_token =
-      cookies?.ACCESS_TOKEN_PETHEEDS || cookies?.ACCESS_TOKEN_PETHEEDS_CLIENT;
+    const access_token = cookies?.ACCESS_TOKEN_PARTYSCAPE;
 
     if (access_token === null) {
       return res.status(403).json({
         success: false,
-        message: "Unauthorized! Please Check Your Login Credentials1",
+        message: "Unauthorized! Please Check Your Login Credentials!!",
       });
     }
 
@@ -35,7 +34,7 @@ export const verifyTokenMiddleware = async (req, res, next) => {
         } catch (error) {
           return res.status(403).json({
             success: false,
-            message: error.message || error || "Internal server error!!",
+            message: error.message || "Internal server error!!",
           });
         }
       }
@@ -43,7 +42,7 @@ export const verifyTokenMiddleware = async (req, res, next) => {
   } catch (error) {
     return res.status(403).json({
       success: false,
-      message: error?.message || error || "Internal server error!!",
+      message: error?.message || "Internal server error!!",
     });
   }
 };

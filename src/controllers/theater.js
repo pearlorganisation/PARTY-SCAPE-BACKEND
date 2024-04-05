@@ -3,24 +3,32 @@ import errorResponse from "../utils/errorResponse.js";
 import theater from "../models/theater.js";
 import bookings from "../models/bookings.js";
 
+// @desc -creating new theater
+// @route - POST api/v1/theater
 export const newTheater = asyncHandler(async (req, res, next) => {
+  const { logo, gallery } = req?.files;
   const newDoc = new theater({
     ...req?.body,
-    occupancyDetails: JSON.parse(req?.body?.occupancyDetails),
-    features: JSON.parse(req?.body?.features),
-    slots: JSON.parse(req?.body?.slots),
-    logo: req?.files?.logo[0],
-    gallery: req?.files?.gallery,
+    occupancyDetails:
+      req?.body?.occupancyDetails && JSON.parse(req?.body?.occupancyDetails),
+    features: req?.body?.features && JSON.parse(req?.body?.features),
+    slots: req?.body?.slots && JSON.parse(req?.body?.slots),
+    logo: Array.isArray(logo) && logo.length >= 1 && logo[0],
+    gallery: Array.isArray(gallery) && gallery.length >= 1 && gallery,
   });
   await newDoc.save();
   res.status(200).json({ status: true, newDoc });
 });
 
+// @desc -get all theater
+// @route - GET api/v1/theater
 export const getAllTheater = asyncHandler(async (req, res, next) => {
   const data = await theater.find();
   res.status(200).json({ status: true, data });
 });
 
+// @desc -delete existing theater
+// @route - DELETE api/v1/theater/:id
 export const deleteTheater = asyncHandler(async (req, res, next) => {
   const isValidData = await theater.findByIdAndDelete(req?.params?.id);
   if (!isValidData)
@@ -29,6 +37,8 @@ export const deleteTheater = asyncHandler(async (req, res, next) => {
   res.status(200).json({ status: true, message: "Deleted successfully!!" });
 });
 
+// @desc - updating existing theater
+// @route - PATCh api/v1/theater/:id
 export const updateTheater = asyncHandler(async (req, res, next) => {
   const { id } = req?.params;
   let { logo, gallery } = req?.files;
@@ -54,6 +64,8 @@ export const updateTheater = asyncHandler(async (req, res, next) => {
   res.status(200).json({ status: true, message: "Updated Successfully!!" });
 });
 
+// @desc - get particular theater and populating booked slots in it
+// @route - GET api/v1/theater/:id
 export const getParticularTheater = asyncHandler(async (req, res, next) => {
   const { id } = req?.params;
   const data = await theater.findOne({ theaterName: new RegExp(id, "i") });

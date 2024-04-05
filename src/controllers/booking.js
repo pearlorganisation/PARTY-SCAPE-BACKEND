@@ -7,6 +7,8 @@ import { userBooking } from "../utils/nodemailer.js";
 import { userBookingAdmin } from "../utils/forAdmin.js";
 import { error } from "console";
 
+// @desc -creating new order section for razorpay and storing booking data in database
+// @route - POST api/v1/bookings
 export const bookingOrder = asyncHandler(async (req, res, next) => {
   let remainingPrice = Number(req?.body?.data?.theaterPrice) - 700;
   const newBooking = await bookings.create({
@@ -37,6 +39,8 @@ export const bookingOrder = asyncHandler(async (req, res, next) => {
   });
 });
 
+// @desc - verifying razorpay order api
+// @route - POST api/v1/bookings/verifyOrder
 export const verifyOrder = asyncHandler(async (req, res) => {
   const { razorpay_order_id, razorpay_payment_id, razorpay_signature } =
     req.body;
@@ -75,16 +79,22 @@ export const verifyOrder = asyncHandler(async (req, res) => {
     });
 });
 
+// @desc -creating get single booking data api
+// @route - GET api/v1/bookings/:id
 export const getSingleBooking = asyncHandler(async (req, res) => {
   const data = await bookings.findById(req?.params?.id);
   res.status(200).json({ status: true, data });
 });
 
+// @desc - get all bookings data
+// @route - GEt api/v1/bookings
 export const getAllBookings = asyncHandler(async (req, res) => {
   const data = await bookings.find().populate("theater", ["theaterName"]);
   res.status(200).json({ status: true, data });
 });
 
+// @desc -creating new user
+// @route - POST api/v1/auth/signup
 export const refund = asyncHandler(async (req, res, next) => {
   const existingBooking = await bookings.findOne({
     bookingId: req?.body?.bookingId,
