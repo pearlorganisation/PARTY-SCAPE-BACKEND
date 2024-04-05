@@ -31,20 +31,25 @@ export const deleteTheater = asyncHandler(async (req, res, next) => {
 
 export const updateTheater = asyncHandler(async (req, res, next) => {
   const { id } = req?.params;
+  let { logo, gallery } = req?.files;
   const existingData = await theater.findById(id);
-  // if (!existingData) {
-  //   return next(new errorResponse("No data found with given id!!", 400));
-  // }
+  if (!existingData) {
+    return next(new errorResponse("No data found with given id!!", 400));
+  }
+  if (!Array.isArray(logo) || logo?.length < 1) {
+    logo = existingData?.logo;
+  }
+  if (!Array.isArray(gallery) || gallery?.length < 1) {
+    gallery = existingData?.gallery;
+  }
 
   await theater.findByIdAndUpdate(id, {
     ...req?.body,
-    occupancyDetails:
-      existingData?.occupancyDetails || JSON.parse(req?.body?.occupancyDetails),
-    features: existingData?.features || JSON.parse(req?.body?.features),
-    slots: existingData?.slots || JSON.parse(req?.body?.slots),
-    logo: Array.isArray(req?.files?.logo) && req?.files?.logo[0],
-    gallery: req?.files?.gallery,
-    logo: req?.files?.logo[0] || existingData?.logo,
+    occupancyDetails: JSON.parse(req?.body?.occupancyDetails),
+    features: JSON.parse(req?.body?.features),
+    slots: JSON.parse(req?.body?.slots),
+    logo,
+    gallery,
   });
   res.status(200).json({ status: true, message: "Updated Successfully!!" });
 });

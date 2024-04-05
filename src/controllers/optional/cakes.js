@@ -32,7 +32,7 @@ export const updateCake = asyncHandler(async (req, res, next) => {
   const data = await cakes.findByIdAndUpdate(req?.params?.id, {
     ...req?.body,
     price: JSON.parse(req?.body?.price),
-    cake: req?.file?.path || existingData?.image,
+    image: req?.file?.path || existingData?.image,
   });
   if (!data)
     return next(new errorResponse("No data found with given id!!", 400));

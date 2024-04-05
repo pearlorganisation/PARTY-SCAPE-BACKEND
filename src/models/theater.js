@@ -5,7 +5,12 @@ const theaterSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
-
+    showCake: {
+      type: Boolean,
+    },
+    videoUrl: {
+      type: String,
+    },
     logo: {
       type: {},
       required: true,
