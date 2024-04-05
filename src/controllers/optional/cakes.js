@@ -4,7 +4,11 @@ import errorResponse from "../../utils/errorResponse.js";
 // import cakes from "../../models/optional/cakes.js";
 
 export const newCake = asyncHandler(async (req, res, next) => {
-  const newDoc = new cakes({ ...req?.body, image: req?.file?.path });
+  const newDoc = new cakes({
+    ...req?.body,
+    price: req?.body?.price && JSON.parse(req?.body?.price),
+    image: req?.file?.path,
+  });
   await newDoc.save();
   res.status(201).json({ status: true, message: "Created successfully!!" });
 });

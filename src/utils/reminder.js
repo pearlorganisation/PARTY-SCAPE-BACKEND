@@ -14,7 +14,7 @@
 
 // export const job = new CronJob(
 //   "* * * * *", // (runs every minute)
-//   reminderFunction,
+//   reminderFunction(),
 //   null,
 //   true,
 //   "America/Los_Angeles"
