@@ -1,4 +1,5 @@
 import { asyncHandler } from "../utils/asyncHandler.js";
+import theater from "../models/theater.js";
 import errorResponse from "../utils/errorResponse.js";
 import crypto from "crypto";
 import { razorpayInstance } from "../configs/razorpay.js";
@@ -89,6 +90,7 @@ export const getSingleBooking = asyncHandler(async (req, res) => {
 // @desc - get all bookings data
 // @route - GEt api/v1/bookings
 export const getAllBookings = asyncHandler(async (req, res) => {
+  // const pipeline = [{ $lookup :{from:}}];
   const data = await bookings.find().populate("theater", ["theaterName"]);
   res.status(200).json({ status: true, data });
 });
@@ -121,4 +123,41 @@ export const refund = asyncHandler(async (req, res, next) => {
       res.status(200).json({ status: true, refund });
     }
   );
+});
+
+//@desc - gettting datewise available slots
+//@route - GET api/v1/availableSlots
+export const availableSlots = asyncHandler(async (req, res, next) => {
+  const options = { year: "numeric", month: "short", day: "2-digit" };
+  const formattedDate = new Date().toLocaleDateString("en-US", options);
+  const bookedSlotsData = await bookings.find(
+    {
+      bookedDate: formattedDate,
+    },
+    { theater: true, bookedSlot: true }
+  );
+
+  const totalSlots = await theater.find(
+    {},
+    { occupancyDetails: true, slots: true, theaterName: true }
+  );
+
+  let availableSlotsData = [];
+  for (let i = 0; i < totalSlots?.length; i++) {
+    let availableSlots = [];
+    for (let j = 0; j < bookedSlotsData?.length; j++) {
+      let sTime = bookedSlotsData[j].bookedSlot.split("-")[0];
+      let eTime = bookedSlotsData[j].bookedSlot.split("-")[1];
+      availableSlots = totalSlots[i].slots.filter((item) => {
+        return item?.start?.toString() != eTime && item?.end?.toString();
+      });
+      availableSlotsData.push({
+        slots: availableSlots,
+        theater: totalSlots[i].theaterName,
+      });
+      availableSlots = [];
+    }
+  }
+
+  res.status(200).json({ status: true, availableSlotsData });
 });

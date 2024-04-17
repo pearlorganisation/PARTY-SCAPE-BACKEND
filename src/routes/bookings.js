@@ -1,5 +1,6 @@
 import express from "express";
 import {
+  availableSlots,
   bookingOrder,
   getAllBookings,
   getSingleBooking,
@@ -13,5 +14,6 @@ router.post("/verifyOrder/:id", verifyOrder);
 router.route("/bookings/:id").get(getSingleBooking);
 router.route("/").get(getAllBookings);
 router.route("/refund").post(refund);
+router.route("/availableSlots").get(availableSlots);
 
 export default router;

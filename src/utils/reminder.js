@@ -1,3 +1,4 @@
+import cron from "node-cron";
 import { CronJob } from "cron";
 import bookings from "../models/bookings.js";
 
@@ -8,14 +9,10 @@ const reminderFunction = async () => {
     day: "numeric",
   };
   const date = new Date().toLocaleDateString("en-US", options);
-  console.log(date);
+  console.log("hellololol");
   const bookingsData = await bookings.find();
 };
 
-export const job = new CronJob(
-  "* * * * *", // (runs every minute)
-  reminderFunction(),
-  null,
-  true,
-  "America/Los_Angeles"
-);
+cron.schedule("* * * * *", () => {
+  console.log("This will run every minute");
+});

@@ -5,12 +5,22 @@ import cors from "cors";
 import chalk from "chalk";
 import connectDB from "./src/configs/db.js";
 
-dotenv.config();
+// @@Desc:-----Handling uncaught Exception-----------------
+process.on("uncaughtException", (err) => {
+  console.log(err);
+  console.log(`PARTY_SCAPE_Error: ${err.message}`);
+  console.log(
+    `PETHEEDS-shutting down the server for handling uncaught exception`
+  );
+});
+
 const app = express();
 const PORT = process.env.PORT || 8080;
-app.use(express.urlencoded({ extended: true }));
 
-connectDB();
+// @@Desc:------MIDDLEWARES------
+dotenv.config();
+app.use(cookieParser());
+app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(
   cors(
@@ -48,6 +58,7 @@ app.use(
   )
 );
 
+// @@Desc:------ROUTES_SECTION------
 import theaterRoutes from "./src/routes/theater.js";
 import addOnsRoutes from "./src/routes/optional/addOns.js";
 import cakeRoutes from "./src/routes/optional/cake.js";
@@ -63,10 +74,28 @@ app.use("/api/v1/bookings", bookingRoutes);
 app.use("/api/v1/cake", cakeRoutes);
 app.use("/api/v1/theater", theaterRoutes);
 app.use("/api/v1/addOns", addOnsRoutes);
-
 app.use("/api/v1/ceremonyType", ceremonyTypeRoutes);
 app.use(error);
 
 app.listen(PORT, async () => {
+  connectDB(); //mongodb connection
   console.log("listening to port 8000");
+});
+
+//@@DESC:--------------unhandled promise rejection
+process.on("unhandledRejection", (err) => {
+  console.log(err);
+  console.log(
+    chalk.red.bold(`PARTY_SCAPE-Shutting down the server for ${err.message}`)
+  );
+
+  console.log(
+    chalk.red.bold(
+      `PARTY_SCAPE-shutting down the server for unhandle promise rejection`
+    )
+  );
+
+  server.close(() => {
+    process.exit(1);
+  });
 });
