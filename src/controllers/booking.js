@@ -10,7 +10,7 @@ import { error } from "console";
 
 // @desc -creating new order section for razorpay and storing booking data in database
 // @route - POST api/v1/bookings
-export const bookingOrder = asyncHandler(async (req, res, next) => {
+export const bookingOrder = async (req, res, next) => {
   let remainingPrice = Number(req?.body?.data?.theaterPrice) - 700;
   const newBooking = await bookings.create({
     ceremonyType: req?.body?.data?.selectedCeremony?._id,
@@ -31,14 +31,23 @@ export const bookingOrder = asyncHandler(async (req, res, next) => {
     currency: "INR",
   };
 
-  const order = await razorpayInstance.orders.create(options);
-
-  res.status(200).json({
-    success: true,
-    order,
-    bookingId: newBooking?._id,
-  });
-});
+  razorpayInstance.orders
+    .create(options)
+    .then((order) => {
+      res.status(200).json({
+        success: true,
+        order,
+        bookingId: newBooking?._id,
+      });
+    })
+    .catch(async (err) => {
+      await bookings.findByIdAndDelete(newBooking._id);
+      return res.status(400).json({
+        status: true,
+        message: err?.message || "Internal server error!!",
+      });
+    });
+};
 
 // @desc - verifying razorpay order api
 // @route - POST api/v1/bookings/verifyOrder
@@ -58,7 +67,9 @@ export const verifyOrder = asyncHandler(async (req, res) => {
     .digest("hex");
 
   const isAuthentic = expectedSignature === razorpay_signature;
+
   if (!isAuthentic) {
+    await bookings.findByIdAndDelete(req?.params?.id);
     res.redirect(`${process.env.FRONTEND_LIVE_URL}/paymentFailed/`);
   }
   let data = await bookings
@@ -90,7 +101,38 @@ export const getSingleBooking = asyncHandler(async (req, res) => {
 // @desc - get all bookings data
 // @route - GEt api/v1/bookings
 export const getAllBookings = asyncHandler(async (req, res) => {
-  // const pipeline = [{ $lookup :{from:}}];
+  console.log(req?.query);
+  // const pipeline = [
+  //   {
+  //     $lookup: {
+  //       from: "cake",
+  //       localField: "cake",
+  //       foreignField: "_id",
+  //       as: "cake",
+  //     },
+  //   },
+  //   {
+  //     $lookup: {
+  //       from: "ceremonyType",
+  //       localField: "ceremonyType",
+  //       foreignField: "_id",
+  //       as: "ceremonyType",
+  //     },
+  //   },
+  //   {
+  //     $lookup: {
+  //       from: "theater",
+  //       localField: "theater",
+  //       foreignField: "_id",
+  //       as: "theater",
+  //     },
+  //   },
+  //   {
+  //     $match: {
+  //       if(req?)
+  //     },
+  //   },
+  // ];
   const data = await bookings.find().populate("theater", ["theaterName"]);
   res.status(200).json({ status: true, data });
 });

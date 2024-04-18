@@ -42,12 +42,15 @@ export const deleteTheater = asyncHandler(async (req, res, next) => {
 export const updateTheater = asyncHandler(async (req, res, next) => {
   const { id } = req?.params;
   let { logo, gallery } = req?.files;
+  console.log(logo);
   const existingData = await theater.findById(id);
   if (!existingData) {
     return next(new errorResponse("No data found with given id!!", 400));
   }
   if (!Array.isArray(logo) || logo?.length < 1) {
     logo = existingData?.logo;
+  } else {
+    logo = logo[0];
   }
   if (!Array.isArray(gallery) || gallery?.length < 1) {
     gallery = existingData?.gallery;
