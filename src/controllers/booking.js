@@ -57,6 +57,7 @@ export const verifyOrder = asyncHandler(async (req, res) => {
   const body = razorpay_order_id + "|" + razorpay_payment_id;
   await bookings.findByIdAndUpdate(req?.params?.id, {
     razorpay_order_id,
+    isBookedSuccessfully: true,
     razorpay_payment_id,
     razorpay_payment_id,
   });
@@ -101,7 +102,6 @@ export const getSingleBooking = asyncHandler(async (req, res) => {
 // @desc - get all bookings data
 // @route - GEt api/v1/bookings
 export const getAllBookings = asyncHandler(async (req, res) => {
-  console.log(req?.query);
   // const pipeline = [
   //   {
   //     $lookup: {
@@ -133,7 +133,9 @@ export const getAllBookings = asyncHandler(async (req, res) => {
   //     },
   //   },
   // ];
-  const data = await bookings.find().populate("theater", ["theaterName"]);
+
+  await bookings.deleteMany({ isBookedSuccessfully: false });
+  const data = await bookings.find({}).populate("theater", ["theaterName"]);
   res.status(200).json({ status: true, data });
 });
 
