@@ -2,6 +2,7 @@ import express from "express";
 import {
   availableSlots,
   bookingOrder,
+  deleteBookings,
   getAllBookings,
   getSingleBooking,
   refund,
@@ -14,6 +15,7 @@ router.post("/verifyOrder/:id", verifyOrder);
 router.route("/bookings/:id").get(getSingleBooking);
 router.route("/").get(getAllBookings);
 router.route("/refund").post(refund);
+router.route("/:id").delete(deleteBookings);
 router.route("/availableSlots").get(availableSlots);
 
 export default router;

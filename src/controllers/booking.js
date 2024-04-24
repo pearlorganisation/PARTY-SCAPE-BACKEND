@@ -102,41 +102,87 @@ export const getSingleBooking = asyncHandler(async (req, res) => {
 // @desc - get all bookings data
 // @route - GEt api/v1/bookings
 export const getAllBookings = asyncHandler(async (req, res) => {
-  // const pipeline = [
-  //   {
-  //     $lookup: {
-  //       from: "cake",
-  //       localField: "cake",
-  //       foreignField: "_id",
-  //       as: "cake",
-  //     },
-  //   },
-  //   {
-  //     $lookup: {
-  //       from: "ceremonyType",
-  //       localField: "ceremonyType",
-  //       foreignField: "_id",
-  //       as: "ceremonyType",
-  //     },
-  //   },
-  //   {
-  //     $lookup: {
-  //       from: "theater",
-  //       localField: "theater",
-  //       foreignField: "_id",
-  //       as: "theater",
-  //     },
-  //   },
-  //   {
-  //     $match: {
-  //       if(req?)
-  //     },
-  //   },
-  // ];
+  const { search } = req?.query;
+  const { filter } = req?.query;
+  const inputDate = new Date(filter);
+
+  const monthNames = [
+    "Jan",
+    "Feb",
+    "Mar",
+    "Apr",
+    "May",
+    "Jun",
+    "Jul",
+    "Aug",
+    "Sep",
+    "Oct",
+    "Nov",
+    "Dec",
+  ];
+
+  const month = monthNames[inputDate.getMonth()];
+  const day = inputDate.getDate();
+  const year = inputDate.getFullYear();
+  const formattedDate = month + " " + day + ", " + year;
+
+  const pipeline = [
+    {
+      $lookup: {
+        from: "cake",
+        localField: "cake",
+        foreignField: "_id",
+        as: "cake",
+      },
+    },
+    {
+      $lookup: {
+        from: "ceremonyType",
+        localField: "ceremonyType",
+        foreignField: "_id",
+        as: "ceremonyType",
+      },
+    },
+    {
+      $lookup: {
+        from: "theater",
+        localField: "theater",
+        foreignField: "_id",
+        as: "theater",
+      },
+    },
+    {
+      $unwind: "$theater",
+    },
+    {
+      $match: {
+        "bookedBy.name": {
+          $regex: search ? `.*${search}.*` : "",
+          $options: "i",
+        },
+      },
+    },
+    {
+      $match: {
+        bookedDate: filter ? formattedDate : { $exists: true },
+      },
+    },
+    {
+      $addFields: {
+        parsedDate: { $dateFromString: { dateString: "$bookedDate" } },
+      },
+    },
+    {
+      $sort: {
+        parsedDate: -1,
+      },
+    },
+  ];
 
   await bookings.deleteMany({ isBookedSuccessfully: false });
-  const data = await bookings.find({}).populate("theater", ["theaterName"]);
-  res.status(200).json({ status: true, data });
+  const data = await bookings.aggregate(pipeline);
+  // const data = await bookings.find({}).populate("theater", ["theaterName"]);
+  res.status(200).json({ status: true, data, length: data.length });
 });
 
 // @desc -creating new user
@@ -204,4 +250,20 @@ export const availableSlots = asyncHandler(async (req, res, next) => {
   }
 
   res.status(200).json({ status: true, availableSlotsData });
+});
+
+//@desc - delete booking details api
+//@route - GET api/v1/availableSlots/:id
+export const deleteBookings = asyncHandler(async (req, res, next) => {
+  await bookings.findByIdAndDelete(req?.params?.id);
+  res
+    .status(200)
+    .json({ status: true, message: "Bookings deleted successfully!!" });
+});
+
+//@desc - create offline booking
+//@route - GET api/v1/offlineBooking/
+export const offlineBooking = asyncHandler(async (req, res, next) => {
+  await bookings.create(req?.body);
+  res.status(201).json({ status: true, message: "Booked successfully!!" });
 });

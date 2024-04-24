@@ -21,21 +21,15 @@ export const signup = asyncHandler(async (req, res, next) => {
 // @desc - log in
 // @route - POST api/v1/auth/login
 export const login = asyncHandler(async (req, res, next) => {
-  console.log(req?.body);
   const { email, password } = req?.body;
   const isDataExists = await authModel.findOne({
     $or: [{ email }, {}],
   });
   if (!isDataExists) return next(new errorResponse("No user found!!", 400));
 
-  const isPasswordValid = await bcrypt.compare(
-    isDataExists?.password,
-    password
-  );
-  console.log(isPasswordValid, "isPasswordValid");
-
-  if (!isPasswordValid)
+  if (isDataExists?.password != password) {
     return next(new errorResponse("Wrong password!! please try again", 400));
+  }
 
   // @@Desc-Json web token section and saving it in cookies----
   const accessToken = jwt.sign(

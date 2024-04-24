@@ -51,6 +51,10 @@ const bookingSchema = new mongoose.Schema(
     ceremonyTypeLabels: {
       type: [],
     },
+    bookingType: {
+      type: String,
+      enum: ["ONLINE", "OFFLINE"],
+    },
 
     theater: {
       type: mongoose.Types.ObjectId,
