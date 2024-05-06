@@ -6,6 +6,9 @@ const bookingSchema = new mongoose.Schema(
       type: mongoose.Types.ObjectId,
       ref: "cake",
     },
+    cakeQuantity: {
+      type: String,
+    },
     addOns: {
       type: [],
     },

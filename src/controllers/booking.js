@@ -131,11 +131,14 @@ export const getAllBookings = asyncHandler(async (req, res) => {
   const pipeline = [
     {
       $lookup: {
-        from: "cake",
+        from: "cakes",
         localField: "cake",
         foreignField: "_id",
         as: "cake",
       },
+    },
+    {
+      $unwind: "$cake",
     },
     {
       $lookup: {
@@ -183,6 +186,7 @@ export const getAllBookings = asyncHandler(async (req, res) => {
 
   await bookings.deleteMany({ isBookedSuccessfully: false });
   const data = await bookings.aggregate(pipeline);
+
   // const data = await bookings.find({}).populate("theater", ["theaterName"]);
   res.status(200).json({ status: true, data, length: data.length });
 });
@@ -343,6 +347,7 @@ export const offlineBooking = asyncHandler(async (req, res, next) => {
     remainingPrice: Number(bookingPrice - 750),
     cakePrice: cakePriceData?.price,
     isCakeEggLess: eggLess ? true : false,
+    cakeQuantity: cakePriceData?.weight,
     bookedSlot: bookedSlot?.label,
     totalPeople: totalPeople?.value,
     ceremonyTypeLabels: updatedCeremony,
@@ -352,8 +357,6 @@ export const offlineBooking = asyncHandler(async (req, res, next) => {
     .populate("cake", ["name"])
     .populate("ceremonyType", ["type"])
     .populate("theater", ["theaterName"]);
-
-  // console.log(data, "datatat");
 
   userBooking(data)
     .then(() => {
