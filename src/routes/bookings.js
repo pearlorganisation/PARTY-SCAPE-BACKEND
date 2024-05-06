@@ -5,6 +5,7 @@ import {
   deleteBookings,
   getAllBookings,
   getSingleBooking,
+  offlineBooking,
   refund,
   verifyOrder,
 } from "../controllers/booking.js";
@@ -17,5 +18,6 @@ router.route("/").get(getAllBookings);
 router.route("/refund").post(refund);
 router.route("/:id").delete(deleteBookings);
 router.route("/availableSlots").get(availableSlots);
+router.route("/offlineBooking").post(offlineBooking);
 
 export default router;

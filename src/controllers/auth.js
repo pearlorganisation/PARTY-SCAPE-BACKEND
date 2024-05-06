@@ -25,20 +25,12 @@ export const login = asyncHandler(async (req, res, next) => {
   const isDataExists = await authModel.findOne({
     $or: [{ email }, {}],
   });
+
   if (!isDataExists) return next(new errorResponse("No user found!!", 400));
 
   if (isDataExists?.password != password) {
     return next(new errorResponse("Wrong password!! please try again", 400));
   }
-
-  // @@Desc-Json web token section and saving it in cookies----
-  const accessToken = jwt.sign(
-    { userId: isDataExists?._id, email: isDataExists?.email },
-    process.env.JWT_SECRET_KEY,
-    { expiresIn: process.env.ACCESS_TOKEN_VALIDITY }
-  );
-
-  // saveAccessTokenToCookie(isDataExists?.role, res, accessToken);
 
   res.status(200).json({ status: true, message: "Logged in successfully!!" });
 });

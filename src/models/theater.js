@@ -11,6 +11,7 @@ const theaterSchema = new mongoose.Schema(
     videoUrl: {
       type: String,
     },
+
     logo: {
       type: {},
       required: true,

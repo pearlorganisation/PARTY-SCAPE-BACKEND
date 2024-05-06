@@ -2,11 +2,13 @@ import { asyncHandler } from "../utils/asyncHandler.js";
 import theater from "../models/theater.js";
 import errorResponse from "../utils/errorResponse.js";
 import crypto from "crypto";
+import ceremonyType from "../models/optional/ceremonyType.js";
+import cakes from "../models/optional/cakes.js";
 import { razorpayInstance } from "../configs/razorpay.js";
 import bookings from "../models/bookings.js";
 import { userBooking } from "../utils/nodemailer.js";
 import { userBookingAdmin } from "../utils/forAdmin.js";
-import { error } from "console";
+import mongoose from "mongoose";
 
 // @desc -creating new order section for razorpay and storing booking data in database
 // @route - POST api/v1/bookings
@@ -264,6 +266,106 @@ export const deleteBookings = asyncHandler(async (req, res, next) => {
 //@desc - create offline booking
 //@route - GET api/v1/offlineBooking/
 export const offlineBooking = asyncHandler(async (req, res, next) => {
-  await bookings.create(req?.body);
-  res.status(201).json({ status: true, message: "Booked successfully!!" });
+  const {
+    whatsappNumber,
+    email,
+    name,
+    eggLess,
+    addOns,
+    bookingPrice,
+    // ceremonyType,
+    // cake,
+    bookedSlot,
+    quantity,
+
+    date,
+    otherDetails,
+
+    totalPeople,
+    ceremonyTypeLabels,
+  } = req?.body;
+  const inputDate = new Date(date);
+
+  const monthNames = [
+    "Jan",
+    "Feb",
+    "Mar",
+    "Apr",
+    "May",
+    "Jun",
+    "Jul",
+    "Aug",
+    "Sep",
+    "Oct",
+    "Nov",
+    "Dec",
+  ];
+
+  const month = monthNames[inputDate.getMonth()];
+  const day = inputDate.getDate();
+  const year = inputDate.getFullYear();
+  const formattedDate = month + " " + day + ", " + year;
+
+  const cakePriceData = quantity && JSON.parse(quantity);
+
+  let price = 0;
+
+  const ceremony = await ceremonyType.findById(req?.body?.ceremonyType?.value);
+
+  let updatedCeremony = ceremony?.otherDetails?.map((item, i) => {
+    let temDoc = item?._doc;
+    return { ...temDoc, value: otherDetails[i] };
+  });
+
+  let updatedAddons = addOns?.map((item) => {
+    return item?.value;
+  });
+
+  const bookingData = await bookings.create({
+    theater: req?.body?.theater?.value,
+    theaterPrice: bookingPrice,
+    cake: req?.body?.cake?.value?.id,
+    price: bookingPrice,
+
+    totalPeople: req?.body?.totalPeople,
+
+    bookingType: "OFFLINE",
+    bookedBy: {
+      name,
+      whatsappNumber,
+      email,
+    },
+    isBookedSuccessfully: true,
+
+    ceremonyType: ceremonyType?.value,
+    bookedDate: formattedDate,
+    addOns: updatedAddons,
+    remainingPrice: Number(bookingPrice - 750),
+    cakePrice: cakePriceData?.price,
+    isCakeEggLess: eggLess ? true : false,
+    bookedSlot: bookedSlot?.label,
+    totalPeople: totalPeople?.value,
+    ceremonyTypeLabels: updatedCeremony,
+  });
+  let data = await bookings
+    .findById(bookingData._id)
+    .populate("cake", ["name"])
+    .populate("ceremonyType", ["type"])
+    .populate("theater", ["theaterName"]);
+
+  // console.log(data, "datatat");
+
+  userBooking(data)
+    .then(() => {
+      userBookingAdmin(data).then(() => {
+        res
+          .status(201)
+          .json({ status: true, message: "Booked successfully!!" });
+      });
+    })
+    .catch((e) => {
+      return res
+        .status(400)
+        .json({ status: true, message: e?.message || "Internal server error" });
+    });
 });

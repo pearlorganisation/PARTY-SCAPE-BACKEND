@@ -5,15 +5,6 @@ import cors from "cors";
 import chalk from "chalk";
 import connectDB from "./src/configs/db.js";
 
-// @@Desc:-----Handling uncaught Exception-----------------
-process.on("uncaughtException", (err) => {
-  console.log(err);
-  console.log(`PARTY_SCAPE_Error: ${err.message}`);
-  console.log(
-    `PETHEEDS-shutting down the server for handling uncaught exception`
-  );
-});
-
 const app = express();
 const PORT = process.env.PORT || 8080;
 
@@ -80,22 +71,4 @@ app.use(error);
 app.listen(PORT, async () => {
   connectDB(); //mongodb connection
   console.log("listening to port 8000");
-});
-
-//@@DESC:--------------unhandled promise rejection
-process.on("unhandledRejection", (err) => {
-  console.log(err);
-  console.log(
-    chalk.red.bold(`PARTY_SCAPE-Shutting down the server for ${err.message}`)
-  );
-
-  console.log(
-    chalk.red.bold(
-      `PARTY_SCAPE-shutting down the server for unhandle promise rejection`
-    )
-  );
-
-  server.close(() => {
-    process.exit(1);
-  });
 });

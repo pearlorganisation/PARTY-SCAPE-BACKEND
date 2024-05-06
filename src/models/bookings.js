@@ -16,6 +16,10 @@ const bookingSchema = new mongoose.Schema(
       type: String,
       required: ["Booking date is required!!"],
     },
+    cakePrice: { type: String },
+    isCakeEggLess: {
+      type: Boolean,
+    },
     bookedSlot: {
       type: String,
       required: ["Booked slot is required!!"],
@@ -60,6 +64,7 @@ const bookingSchema = new mongoose.Schema(
       type: mongoose.Types.ObjectId,
       ref: "theater",
     },
+
     remainingPrice: {
       type: Number,
       // required: [true, "Remaining price is required!!"],
