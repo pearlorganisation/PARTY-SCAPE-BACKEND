@@ -2,6 +2,8 @@ import { asyncHandler } from "../utils/asyncHandler.js";
 import theater from "../models/theater.js";
 import errorResponse from "../utils/errorResponse.js";
 import crypto from "crypto";
+import fs from "fs";
+import xlsx from "xlsx";
 import ceremonyType from "../models/optional/ceremonyType.js";
 import cakes from "../models/optional/cakes.js";
 import { razorpayInstance } from "../configs/razorpay.js";
@@ -371,4 +373,35 @@ export const offlineBooking = asyncHandler(async (req, res, next) => {
         .status(400)
         .json({ status: true, message: e?.message || "Internal server error" });
     });
+});
+
+//@desc - get booking data in excel-sheet
+//@route - GET api/v1/sheet/
+export const getBookingDataInSheet = asyncHandler(async (req, res, next) => {
+ 
+  const bookingData = await bookings.find(); // Assuming this retrieves data from a database
+
+  const newData = bookingData?.map((it) => {
+    return it?._doc;
+  });
+
+
+
+  const ws = xlsx.utils.json_to_sheet(newData);
+  const wb = xlsx.utils.book_new();
+  xlsx.utils.book_append_sheet(wb, ws, "Sheet1");
+
+  // Write the workbook to a buffer
+  const buffer = xlsx.write(wb, { bookType: "xlsx", type: "buffer" });
+
+  Set appropriate headers for file download
+  res.setHeader("Content-disposition", "attachment; filename=output.xlsx");
+  res.setHeader(
+    "Content-type",
+    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+  );
+
+
+  // Send the buffer as the response
+  res.send(Buffer.concat([buffer]));
 });
