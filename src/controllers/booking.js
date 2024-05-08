@@ -3,7 +3,7 @@ import theater from "../models/theater.js";
 import errorResponse from "../utils/errorResponse.js";
 import crypto from "crypto";
 import fs from "fs";
-import xlsx from "xlsx";
+import exceljs from "exceljs";
 import ceremonyType from "../models/optional/ceremonyType.js";
 import cakes from "../models/optional/cakes.js";
 import { razorpayInstance } from "../configs/razorpay.js";
@@ -15,7 +15,9 @@ import mongoose from "mongoose";
 // @desc -creating new order section for razorpay and storing booking data in database
 // @route - POST api/v1/bookings
 export const bookingOrder = async (req, res, next) => {
-  let remainingPrice = Number(req?.body?.data?.theaterPrice) - 700;
+  const count = await bookings.countDocuments();
+  const bookingId = "ps" + String(count).padStart(5, "0");
+  let remainingPrice = Number(req?.body?.data?.theaterPrice) - 750;
   const newBooking = await bookings.create({
     ceremonyType: req?.body?.data?.selectedCeremony?._id,
     addOns: req?.body?.data?.selectedAddOns,
@@ -24,6 +26,7 @@ export const bookingOrder = async (req, res, next) => {
     bookedBy: req?.body?.userDetail?.bookedBy,
     cake: req?.body?.data?.selectedCake?._id,
     ceremonyTypeLabels: req?.body?.data?.selectedCeremonyLabels,
+    bookingId,
 
     bookedSlot: req?.body?.data?.slot,
     remainingPrice,
@@ -326,10 +329,13 @@ export const offlineBooking = asyncHandler(async (req, res, next) => {
   let updatedAddons = addOns?.map((item) => {
     return item?.value;
   });
+  const count = await bookings.countDocuments();
+  const bookingId = "ps" + String(count).padStart(5, "0");
 
   const bookingData = await bookings.create({
     theater: req?.body?.theater?.value,
     theaterPrice: bookingPrice,
+    bookingId,
     cake: req?.body?.cake?.value?.id,
     price: bookingPrice,
 
@@ -378,30 +384,69 @@ export const offlineBooking = asyncHandler(async (req, res, next) => {
 //@desc - get booking data in excel-sheet
 //@route - GET api/v1/sheet/
 export const getBookingDataInSheet = asyncHandler(async (req, res, next) => {
- 
-  const bookingData = await bookings.find(); // Assuming this retrieves data from a database
+  let data = await bookings
+    .find()
+    .populate("cake", ["name"])
+    .populate("ceremonyType", ["type"])
+    .populate("theater", ["theaterName"]);
+  const workbook = new exceljs.Workbook();
+  const sheets = workbook.addWorksheet("bookings");
 
-  const newData = bookingData?.map((it) => {
-    return it?._doc;
+  sheets.columns = [
+    { header: "BookingId", key: "bookingId", width: 25 },
+    { header: "Theater", key: "theater", width: 25 },
+    { header: "Price", key: "price", width: 25 },
+    { header: "BookedSlot", key: "bookedSlot", width: 25 },
+    { header: "Total_People", key: "total_People", width: 25 },
+    { header: "Booked_date", key: "booked_date", width: 25 },
+    { header: "Name", key: "name", width: 25 },
+    { header: "email", key: "email", width: 25 },
+    { header: "Number", key: "number", width: 25 },
+    { header: "Booking_Type", key: "booking_type", width: 25 },
+    { header: "Cake", key: "cake", width: 25 },
+    { header: "Cake_Type", key: "cake_type", width: 25 },
+    { header: "Cake_Price", key: "cake_price", width: 25 },
+    { header: "Cake_quantity", key: "cake_quantity", width: 25 },
+    { header: "Advance_payment", key: "advance_payment", width: 25 },
+    { header: "Total_price", key: "total_price", width: 25 },
+    { header: "Remaining_Price", key: "remaining_price", width: 25 },
+    { header: "Ceremony_Type", key: "ceremony_type", width: 25 },
+    { header: "Add_Ons", key: "add_ons", width: 25 },
+  ];
+
+  data?.map((it) => {
+    sheets.addRow({
+      bookingId: it?.bookingId,
+      theater: it?.theater?.theaterName,
+      price: it?.price,
+      bookedSlot: it?.bookedSlot,
+      total_people: it?.totalPeople,
+      total_People: it?.totalPeople,
+      booked_date: it?.bookedDate,
+      name: it?.bookedBy?.name,
+      email: it?.bookedBy?.email,
+      number: it?.bookedBy?.whatsappNumber,
+      booking_type: it?.bookingType,
+      cake: it?.cake?.name,
+      cake_type: it?.isCakeEggLess ? "Eggless" : "Regular",
+      cake_price: it?.cakePrice,
+      cake_quantity: it?.cakeQuantity,
+      ceremony_type: it?.ceremonyType?.type,
+      advance_payment: "750",
+      remaining_price: it?.remainingPrice,
+      total_price: it?.price,
+      add_ons:
+        it?.addOns &&
+        it?.addOns?.map((it) => {
+          return it?.title;
+        }),
+    });
   });
 
-
-
-  const ws = xlsx.utils.json_to_sheet(newData);
-  const wb = xlsx.utils.book_new();
-  xlsx.utils.book_append_sheet(wb, ws, "Sheet1");
-
-  // Write the workbook to a buffer
-  const buffer = xlsx.write(wb, { bookType: "xlsx", type: "buffer" });
-
-  Set appropriate headers for file download
   res.setHeader("Content-disposition", "attachment; filename=output.xlsx");
   res.setHeader(
     "Content-type",
     "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
   );
-
-
-  // Send the buffer as the response
-  res.send(Buffer.concat([buffer]));
+  workbook.xlsx.write(res);
 });

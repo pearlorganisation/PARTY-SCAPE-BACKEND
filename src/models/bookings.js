@@ -6,6 +6,11 @@ const bookingSchema = new mongoose.Schema(
       type: mongoose.Types.ObjectId,
       ref: "cake",
     },
+    bookingId: {
+      type: String,
+      required: true,
+      unique: true,
+    },
     cakeQuantity: {
       type: String,
     },
