@@ -16,7 +16,8 @@ import mongoose from "mongoose";
 // @route - POST api/v1/bookings
 export const bookingOrder = async (req, res, next) => {
   const count = await bookings.countDocuments();
-  const bookingId = "ps" + String(count).padStart(5, "0");
+  const bookingId = "PS" + String(count).padStart(5, "0");
+
   let remainingPrice = Number(req?.body?.data?.theaterPrice) - 750;
   const newBooking = await bookings.create({
     ceremonyType: req?.body?.data?.selectedCeremony?._id,
@@ -330,7 +331,7 @@ export const offlineBooking = asyncHandler(async (req, res, next) => {
     return item?.value;
   });
   const count = await bookings.countDocuments();
-  const bookingId = "ps" + String(count).padStart(5, "0");
+  const bookingId = "PS" + String(count).padStart(5, "0");
 
   const bookingData = await bookings.create({
     theater: req?.body?.theater?.value,
