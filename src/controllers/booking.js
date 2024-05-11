@@ -412,6 +412,7 @@ export const getBookingDataInSheet = asyncHandler(async (req, res, next) => {
     { header: "Total_price", key: "total_price", width: 25 },
     { header: "Remaining_Price", key: "remaining_price", width: 25 },
     { header: "Ceremony_Type", key: "ceremony_type", width: 25 },
+    { header: "Ceremony_Details", key: "ceremony_details", width: 40 },
     { header: "Add_Ons", key: "add_ons", width: 25 },
   ];
 
@@ -433,6 +434,9 @@ export const getBookingDataInSheet = asyncHandler(async (req, res, next) => {
       cake_price: it?.cakePrice,
       cake_quantity: it?.cakeQuantity,
       ceremony_type: it?.ceremonyType?.type,
+      ceremony_details: it?.ceremonyTypeLabels?.map((it, i) => {
+        return `${it?.label} = ${it?.value}`;
+      }),
       advance_payment: "750",
       remaining_price: it?.remainingPrice,
       total_price: it?.price,
@@ -444,10 +448,11 @@ export const getBookingDataInSheet = asyncHandler(async (req, res, next) => {
     });
   });
 
-  res.setHeader("Content-disposition", "attachment; filename=output.xlsx");
+  res.setHeader("Content-disposition", "attachment; filename=bookings.xlsx");
   res.setHeader(
     "Content-type",
     "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
   );
+
   workbook.xlsx.write(res);
 });

@@ -1,5 +1,6 @@
 import { asyncHandler } from "../utils/asyncHandler.js";
 import errorResponse from "../utils/errorResponse.js";
+import exceljs from "exceljs";
 import prospectiveCustomers from "../models/prospectiveCustomers.js";
 
 // @desc -creating new user
@@ -39,4 +40,29 @@ export const deleteCustomer = asyncHandler(async (req, res) => {
 export const getAllCustomers = asyncHandler(async (req, res) => {
   const data = await prospectiveCustomers.find();
   res.status(200).json({ status: true, data });
+});
+
+// @desc -get all prospective Customers data in excel sheet
+// @route - GET api/v1/auth/prospectiveCustomers/sheet
+export const getDataSheet = asyncHandler(async (req, res) => {
+  const data = await prospectiveCustomers.find();
+
+  const workbook = new exceljs.Workbook();
+  const sheets = workbook.addWorksheet("prospects");
+  sheets.columns = [
+    { header: "Name", key: "name", width: 25 },
+    { header: "Email", key: "email", width: 25 },
+    { header: "Number", key: "number", width: 25 },
+  ];
+
+  data?.map((it) => {
+    sheets.addRow({ name: it?.name, email: it?.email, number: it?.number });
+  });
+  res.setHeader("Content-disposition", "attachment; filename=prospects.xlsx");
+  res.setHeader(
+    "Content-type",
+    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+  );
+
+  workbook.xlsx.write(res);
 });
