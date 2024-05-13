@@ -21,4 +21,4 @@ const ceremonySchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-export default mongoose.model("ceremonyType", ceremonySchema);
+export default mongoose.model("ceremonytypes", ceremonySchema, "ceremonytypes");

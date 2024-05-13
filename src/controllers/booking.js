@@ -148,12 +148,14 @@ export const getAllBookings = asyncHandler(async (req, res) => {
     },
     {
       $lookup: {
-        from: "ceremonyType",
+        from: "ceremonytypes",
         localField: "ceremonyType",
         foreignField: "_id",
         as: "ceremonyType",
       },
     },
+    { $unwind: "$ceremonyType" },
+
     {
       $lookup: {
         from: "theater",
@@ -193,7 +195,6 @@ export const getAllBookings = asyncHandler(async (req, res) => {
   await bookings.deleteMany({ isBookedSuccessfully: false });
   const data = await bookings.aggregate(pipeline);
 
-  // const data = await bookings.find({}).populate("theater", ["theaterName"]);
   res.status(200).json({ status: true, data, length: data.length });
 });
 
