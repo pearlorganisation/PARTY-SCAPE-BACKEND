@@ -53,7 +53,7 @@ const bookingSchema = new mongoose.Schema(
 
     ceremonyType: {
       type: mongoose.Types.ObjectId,
-      ref: "ceremonyTypes",
+      ref: "ceremonytypes",
     },
     bookedBy: {
       name: String,
