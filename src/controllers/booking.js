@@ -132,7 +132,7 @@ export const getAllBookings = asyncHandler(async (req, res) => {
   const month = monthNames[inputDate.getMonth()];
   const day = inputDate.getDate();
   const year = inputDate.getFullYear();
-  const formattedDate = month + " " + day + ", " + year;
+  const formattedDate = `${month} ${day}, ${year}`;
 
   const pipeline = [
     {
@@ -144,7 +144,10 @@ export const getAllBookings = asyncHandler(async (req, res) => {
       },
     },
     {
-      $unwind: "$cake",
+      $unwind: {
+        path: "$cake",
+        preserveNullAndEmptyArrays: true,
+      },
     },
     {
       $lookup: {
@@ -154,8 +157,12 @@ export const getAllBookings = asyncHandler(async (req, res) => {
         as: "ceremonyType",
       },
     },
-    { $unwind: "$ceremonyType" },
-
+    {
+      $unwind: {
+        path: "$ceremonyType",
+        preserveNullAndEmptyArrays: true,
+      },
+    },
     {
       $lookup: {
         from: "theater",
@@ -165,7 +172,10 @@ export const getAllBookings = asyncHandler(async (req, res) => {
       },
     },
     {
-      $unwind: "$theater",
+      $unwind: {
+        path: "$theater",
+        preserveNullAndEmptyArrays: true,
+      },
     },
     {
       $match: {
@@ -192,10 +202,14 @@ export const getAllBookings = asyncHandler(async (req, res) => {
     },
   ];
 
-  await bookings.deleteMany({ isBookedSuccessfully: false });
-  const data = await bookings.aggregate(pipeline);
-
-  res.status(200).json({ status: true, data, length: data.length });
+  try {
+    await bookings.deleteMany({ isBookedSuccessfully: false });
+    const data = await bookings.aggregate(pipeline);
+    res.status(200).json({ status: true, data, length: data.length });
+  } catch (error) {
+    console.error("Error fetching bookings:", error);
+    res.status(500).json({ status: false, message: "Internal Server Error" });
+  }
 });
 
 // @desc -creating new user

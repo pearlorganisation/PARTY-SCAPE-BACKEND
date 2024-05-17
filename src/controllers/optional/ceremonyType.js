@@ -21,3 +21,16 @@ export const getAllCeremonyType = asyncHandler(async (req, res, next) => {
     data,
   });
 });
+
+export const deleteCeremonyType = asyncHandler(async (req, res, next) => {
+  const data = await ceremonyType.findByIdAndDelete(req?.params?.id);
+  if (!data) {
+    return res
+      .status(400)
+      .json({ status: false, message: "No data found with given id!!" });
+  }
+  res.status(200).json({
+    status: true,
+    message: "Deleted Successfully!!",
+  });
+});
