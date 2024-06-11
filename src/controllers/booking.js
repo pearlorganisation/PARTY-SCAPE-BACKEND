@@ -2,6 +2,7 @@ import { asyncHandler } from "../utils/asyncHandler.js";
 import theater from "../models/theater.js";
 import errorResponse from "../utils/errorResponse.js";
 import crypto from "crypto";
+import axios from "axios";
 import fs from "fs";
 import exceljs from "exceljs";
 import ceremonyType from "../models/optional/ceremonyType.js";
@@ -12,6 +13,32 @@ import { userBooking } from "../utils/nodemailer.js";
 import { userBookingAdmin } from "../utils/forAdmin.js";
 import mongoose from "mongoose";
 
+const getTdyDate = () => {
+  const today = new Date();
+
+  const year = today.getFullYear();
+
+  const monthNames = [
+    "Jan",
+    "Feb",
+    "Mar",
+    "Apr",
+    "May",
+    "Jun",
+    "Jul",
+    "Aug",
+    "Sep",
+    "Oct",
+    "Nov",
+    "Dec",
+  ];
+  const month = monthNames[today.getMonth()];
+
+  const day = today.getDate();
+
+  return `${month} ${day}, ${year}`;
+};
+
 // @desc -creating new order section for razorpay and storing booking data in database
 // @route - POST api/v1/bookings
 export const bookingOrder = async (req, res, next) => {
@@ -19,42 +46,46 @@ export const bookingOrder = async (req, res, next) => {
   const bookingId = "PS" + String(count).padStart(5, "0");
 
   let remainingPrice = Number(req?.body?.data?.theaterPrice) - 750;
-  const newBooking = await bookings.create({
-    ceremonyType: req?.body?.data?.selectedCeremony?._id,
-    addOns: req?.body?.data?.selectedAddOns,
-    price: req?.body?.data?.theaterPrice,
-    theater: req?.body?.data?.theaterId,
-    bookedBy: req?.body?.userDetail?.bookedBy,
-    cake: req?.body?.data?.selectedCake?._id,
-    ceremonyTypeLabels: req?.body?.data?.selectedCeremonyLabels,
-    bookingId,
+  try {
+    const newBooking = await bookings.create({
+      ceremonyType: req?.body?.data?.selectedCeremony?._id,
+      addOns: req?.body?.data?.selectedAddOns,
+      price: req?.body?.data?.theaterPrice,
+      theater: req?.body?.data?.theaterId,
+      bookedBy: req?.body?.userDetail?.bookedBy,
+      cake: req?.body?.data?.selectedCake?._id,
+      ceremonyTypeLabels: req?.body?.data?.selectedCeremonyLabels,
+      bookingId,
 
-    bookedSlot: req?.body?.data?.slot,
-    remainingPrice,
-    totalPeople: req?.body?.data?.NoOfPeople,
-    bookedDate: req?.body?.data?.date,
-  });
-  const options = {
-    amount: Number(750 * 100),
-    currency: "INR",
-  };
-
-  razorpayInstance.orders
-    .create(options)
-    .then((order) => {
-      res.status(200).json({
-        success: true,
-        order,
-        bookingId: newBooking?._id,
-      });
-    })
-    .catch(async (err) => {
-      await bookings.findByIdAndDelete(newBooking._id);
-      return res.status(400).json({
-        status: true,
-        message: err?.message || "Internal server error!!",
-      });
+      bookedSlot: req?.body?.data?.slot,
+      remainingPrice,
+      totalPeople: req?.body?.data?.NoOfPeople,
+      bookedDate: req?.body?.data?.date,
     });
+    const options = {
+      amount: Number(750 * 100),
+      currency: "INR",
+    };
+
+    razorpayInstance.orders
+      .create(options)
+      .then((order) => {
+        res.status(200).json({
+          success: true,
+          order,
+          bookingId: newBooking?._id,
+        });
+      })
+      .catch(async (err) => {
+        await bookings.findByIdAndDelete(newBooking._id);
+        return res.status(400).json({
+          status: true,
+          message: err?.message || "Internal server error!!",
+        });
+      });
+  } catch (e) {
+    res.status(400).json({ status: true, message: e?.message });
+  }
 };
 
 // @desc - verifying razorpay order api
@@ -87,17 +118,96 @@ export const verifyOrder = asyncHandler(async (req, res) => {
     .populate("ceremonyType", ["type"])
     .populate("theater", ["theaterName"]);
 
-  userBooking(data)
-    .then(() => {
-      userBookingAdmin(data).then(() => {
-        res.redirect(`${process.env.FRONTEND_LIVE_URL}/paymentSuccess`);
-      });
-    })
-    .catch((e) => {
-      return res
-        .status(400)
-        .json({ status: true, message: e?.message || "Internal server error" });
+  // @@ section for sending details via whtsapp----------------------------------------------
+
+  let addOns = "";
+  let ceremonyTypesDe = "";
+
+  if (Array.isArray(data?.ceremonyTypeLabels)) {
+    data?.ceremonyTypeLabels?.forEach((e, i) => {
+      if (i < data?.ceremonyTypeLabels.length - 1) {
+        ceremonyTypesDe += `${e?.label}:${e?.value}`;
+      } else {
+        ceremonyTypesDe += `,${e?.label}:${e?.value}`;
+      }
     });
+  } else {
+    ceremonyTypesDe = "No Data";
+  }
+
+  if (Array.isArray(data?.addOns)) {
+    data.addOns.forEach((e, i) => {
+      if (i < data.addOns.length - 1) {
+        addOns += `${e.title}, `;
+      } else {
+        addOns += e.title;
+      }
+    });
+  } else {
+    addOns = "No Data";
+  }
+
+  //getting booking date
+
+  const today = new Date();
+
+  const year = today.getFullYear();
+  const month = String(today.getMonth() + 1).padStart(2, "0");
+  const day = String(today.getDate()).padStart(2, "0");
+
+  const formattedDate = `${year}-${month}-${day}`;
+
+  const payload = {
+    apiKey: process.env.WHATSAPP_API_KEY,
+    campaignName: "details",
+    destination: data?.bookedBy?.whatsappNumber,
+    userName: "party scape",
+    templateParams: [
+      data?.bookingId,
+      data?.bookedBy?.name,
+      data?.theater?.theaterName,
+      `${data?.totalPeople}`,
+      addOns,
+      getTdyDate(),
+      data?.bookedSlot,
+      data?.bookedDate,
+      data?.bookedBy?.email,
+      data?.bookedBy?.whatsappNumber,
+      data?.cake ? data?.cake?.name : "No Data",
+      data?.cake ? (data?.isCakeEggLess ? "Egg-less" : "Regular") : "No Data",
+      data?.ceremonyType?.type,
+      ceremonyTypesDe,
+      JSON.stringify(data?.price),
+      "700",
+      JSON.stringify(data?.remainingPrice),
+    ],
+    source: "new-landing-page form",
+    media: {},
+    buttons: [],
+    carouselCards: [],
+    location: {},
+  };
+
+  axios
+    .post(process.env.API_URL, payload, {
+      headers: {
+        "Content-Type": "application/json",
+      },
+    })
+    .then((response) => {
+      console.log("Response data:", response.data);
+    })
+    .catch((error) => {
+      console.error("Error:", error.message);
+      console.error("Error response data:", error.response.data);
+    });
+
+  // ----------------------------------------whtsapp section end------------------------------------------
+
+  await userBookingAdmin(data);
+  await userBooking(data);
+
+  res.redirect(`${process.env.FRONTEND_LIVE_URL}/paymentSuccess`);
 });
 
 // @desc -creating get single booking data api
@@ -143,6 +253,7 @@ export const getAllBookings = asyncHandler(async (req, res) => {
         as: "cake",
       },
     },
+
     {
       $unwind: {
         path: "$cake",
@@ -240,6 +351,10 @@ export const refund = asyncHandler(async (req, res, next) => {
       res.status(200).json({ status: true, refund });
     }
   );
+});
+
+export const dataSingle = asyncHandler(async (req, res, next) => {
+  const bookingData = await bookings.findById(req?.params?.id);
 });
 
 //@desc - gettting datewise available slots
@@ -382,19 +497,83 @@ export const offlineBooking = asyncHandler(async (req, res, next) => {
     .populate("ceremonyType", ["type"])
     .populate("theater", ["theaterName"]);
 
-  userBooking(data)
-    .then(() => {
-      userBookingAdmin(data).then(() => {
-        res
-          .status(201)
-          .json({ status: true, message: "Booked successfully!!" });
-      });
-    })
-    .catch((e) => {
-      return res
-        .status(400)
-        .json({ status: true, message: e?.message || "Internal server error" });
+  // @@ section for sending details via whtsapp----------------------------------------------
+  let addOn = "";
+  let ceremonyTypesDet = "";
+
+  if (Array.isArray(data?.ceremonyTypeLabels)) {
+    data?.ceremonyTypeLabels?.forEach((e, i) => {
+      if (i < data?.ceremonyTypeLabels.length - 1) {
+        ceremonyTypesDet += `${e?.label}:${e?.value}`;
+      } else {
+        ceremonyTypesDet += `,${e?.label}:${e?.value}`;
+      }
     });
+  } else {
+    ceremonyTypesDet = "No Data";
+  }
+
+  if (Array.isArray(data?.addOns)) {
+    data.addOns.forEach((e, i) => {
+      if (i < data.addOns.length - 1) {
+        addOn += `${e.title}, `;
+      } else {
+        addOn += e.title;
+      }
+    });
+  } else {
+    addOn = "No Data";
+  }
+
+  const payload = {
+    apiKey: process.env.WHATSAPP_API_KEY,
+    campaignName: "details",
+    destination: data?.bookedBy?.whatsappNumber,
+    userName: "party scape",
+    templateParams: [
+      data?.bookingId,
+      data?.bookedBy?.name,
+      data?.theater?.theaterName,
+      `${data?.totalPeople}`,
+      addOn,
+      getTdyDate(),
+      data?.bookedSlot,
+      data?.bookedDate,
+      data?.bookedBy?.email,
+      data?.bookedBy?.whatsappNumber,
+      data?.cake ? data?.cake?.name : "No Data",
+      data?.cake ? (data?.isCakeEggLess ? "Egg-less" : "Regular") : "No Data",
+      data?.ceremonyType?.type ? data?.ceremonyType?.type : "No Data",
+      ceremonyTypesDet,
+      JSON.stringify(data?.price),
+      "700",
+      JSON.stringify(data?.remainingPrice),
+    ],
+    source: "new-landing-page form",
+    media: {},
+    buttons: [],
+    carouselCards: [],
+    location: {},
+  };
+
+  axios
+    .post(process.env.API_URL, payload, {
+      headers: {
+        "Content-Type": "application/json",
+      },
+    })
+    .then((response) => {
+      console.log("Response data:", response.data);
+    })
+    .catch((error) => {
+      console.error("Error:", error.message);
+      console.error("Error response data:", error.response.data);
+    });
+
+  await userBookingAdmin(data);
+  await userBooking(data);
+
+  res.status(201).json({ status: true, message: "Booked successfully!!" });
 });
 
 //@desc - get booking data in excel-sheet
