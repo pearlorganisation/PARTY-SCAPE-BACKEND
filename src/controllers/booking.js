@@ -8,11 +8,26 @@ import exceljs from "exceljs";
 import ceremonyType from "../models/optional/ceremonyType.js";
 import cakes from "../models/optional/cakes.js";
 import { razorpayInstance } from "../configs/razorpay.js";
+
 import bookings from "../models/bookings.js";
 import { userBooking } from "../utils/nodemailer.js";
 import { userBookingAdmin } from "../utils/forAdmin.js";
 import mongoose from "mongoose";
 
+const generateCustomerId = async () => {
+  const currentMonth = new Date().getMonth() + 1;
+  const monthString = currentMonth.toString();
+  const customerCount = await bookings.countDocuments({
+    createdAt: {
+      $gte: new Date(new Date().getFullYear(), currentMonth - 1, 1),
+      $lt: new Date(new Date().getFullYear(), currentMonth, 1),
+    },
+  });
+  const id = `ps${monthString}${String(customerCount + 1).padStart(2, "0")}`;
+
+  return id;
+};
+generateCustomerId();
 const getTdyDate = () => {
   const today = new Date();
 
@@ -159,7 +174,7 @@ export const verifyOrder = asyncHandler(async (req, res) => {
 
   const payload = {
     apiKey: process.env.WHATSAPP_API_KEY,
-    campaignName: "details",
+    campaignName: "partyScapeNew",
     destination: data?.bookedBy?.whatsappNumber,
     userName: "party scape",
     templateParams: [
@@ -187,20 +202,21 @@ export const verifyOrder = asyncHandler(async (req, res) => {
     carouselCards: [],
     location: {},
   };
+  console.log(data);
 
-  axios
-    .post(process.env.API_URL, payload, {
-      headers: {
-        "Content-Type": "application/json",
-      },
-    })
-    .then((response) => {
-      console.log("Response data:", response.data);
-    })
-    .catch((error) => {
-      console.error("Error:", error.message);
-      console.error("Error response data:", error.response.data);
-    });
+  // axios
+  //   .post(process.env.API_URL, payload, {
+  //     headers: {
+  //       "Content-Type": "application/json",
+  //     },
+  //   })
+  //   .then((response) => {
+  //     console.log("Response data:", response.data);
+  //   })
+  //   .catch((error) => {
+  //     console.error("Error:", error.message);
+  //     console.error("Error response data:", error.response.data);
+  //   });
 
   // ----------------------------------------whtsapp section end------------------------------------------
 
@@ -406,6 +422,8 @@ export const deleteBookings = asyncHandler(async (req, res, next) => {
 //@desc - create offline booking
 //@route - GET api/v1/offlineBooking/
 export const offlineBooking = asyncHandler(async (req, res, next) => {
+  const id = await generateCustomerId();
+
   const {
     whatsappNumber,
     email,
@@ -460,13 +478,11 @@ export const offlineBooking = asyncHandler(async (req, res, next) => {
   let updatedAddons = addOns?.map((item) => {
     return item?.value;
   });
-  const count = await bookings.countDocuments();
-  const bookingId = "PS" + String(count).padStart(5, "0");
 
   const bookingData = await bookings.create({
     theater: req?.body?.theater?.value,
     theaterPrice: bookingPrice,
-    bookingId,
+    bookingId: id.toString(),
     cake: req?.body?.cake?.value?.id,
     price: bookingPrice,
 
@@ -497,9 +513,27 @@ export const offlineBooking = asyncHandler(async (req, res, next) => {
     .populate("ceremonyType", ["type"])
     .populate("theater", ["theaterName"]);
 
+  const theaterData = await theater.findById(data?.theater?._id);
+
+  let theaterPricing;
+
+  theaterData?.slots?.forEach((item) => {
+    let tim = `${item?.start} - ${item?.end}`;
+    if (tim == data?.bookedSlot) {
+      theaterPricing = item?.theaterPrice;
+    }
+  });
+
   // @@ section for sending details via whtsapp----------------------------------------------
+
   let addOn = "";
+  let addOnPrice = 0;
   let ceremonyTypesDet = "";
+  let cakeType = "No Data";
+
+  if (data?.cake) {
+    cakeType = data?.isCakeEggLess ? "Egg-less" : "Regular";
+  }
 
   if (Array.isArray(data?.ceremonyTypeLabels)) {
     data?.ceremonyTypeLabels?.forEach((e, i) => {
@@ -517,7 +551,9 @@ export const offlineBooking = asyncHandler(async (req, res, next) => {
     data.addOns.forEach((e, i) => {
       if (i < data.addOns.length - 1) {
         addOn += `${e.title}, `;
+        addOnPrice += Number(e?.price);
       } else {
+        addOnPrice += Number(e?.price);
         addOn += e.title;
       }
     });
@@ -527,7 +563,7 @@ export const offlineBooking = asyncHandler(async (req, res, next) => {
 
   const payload = {
     apiKey: process.env.WHATSAPP_API_KEY,
-    campaignName: "details",
+    campaignName: "partyScape45",
     destination: data?.bookedBy?.whatsappNumber,
     userName: "party scape",
     templateParams: [
@@ -536,15 +572,18 @@ export const offlineBooking = asyncHandler(async (req, res, next) => {
       data?.theater?.theaterName,
       `${data?.totalPeople}`,
       addOn,
-      getTdyDate(),
       data?.bookedSlot,
+      getTdyDate(),
       data?.bookedDate,
       data?.bookedBy?.email,
       data?.bookedBy?.whatsappNumber,
       data?.cake ? data?.cake?.name : "No Data",
-      data?.cake ? (data?.isCakeEggLess ? "Egg-less" : "Regular") : "No Data",
-      data?.ceremonyType?.type ? data?.ceremonyType?.type : "No Data",
+      cakeType,
+      ceremonyType ? ceremony?.type : "No Data",
       ceremonyTypesDet,
+      theaterPricing.toString(),
+      addOnPrice.toString(),
+
       JSON.stringify(data?.price),
       "700",
       JSON.stringify(data?.remainingPrice),
@@ -555,7 +594,7 @@ export const offlineBooking = asyncHandler(async (req, res, next) => {
     carouselCards: [],
     location: {},
   };
-
+  console.log(payload);
   axios
     .post(process.env.API_URL, payload, {
       headers: {
@@ -575,6 +614,10 @@ export const offlineBooking = asyncHandler(async (req, res, next) => {
 
   res.status(201).json({ status: true, message: "Booked successfully!!" });
 });
+
+// export const offlineBooking = asyncHandler(async (req, res, next) => {
+//   console.log(generateCustomerId());
+// });
 
 //@desc - get booking data in excel-sheet
 //@route - GET api/v1/sheet/
