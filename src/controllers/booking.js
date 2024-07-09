@@ -14,26 +14,17 @@ import { userBooking } from "../utils/nodemailer.js";
 import { userBookingAdmin } from "../utils/forAdmin.js";
 import mongoose from "mongoose";
 
-const generateCustomerId = async () => {
-  const currentMonth = new Date().getMonth() + 1;
-  const monthString = currentMonth.toString();
-  const customerCount = await bookings.countDocuments({
-    createdAt: {
-      $gte: new Date(new Date().getFullYear(), currentMonth - 1, 1),
-      $lt: new Date(new Date().getFullYear(), currentMonth, 1),
-    },
-  });
-  const id = `ps${monthString}${String(customerCount + 1).padStart(2, "0")}`;
-
-  return id;
-};
-generateCustomerId();
 const getTdyDate = () => {
   const today = new Date();
-
+  const day = String(today.getDate()).padStart(2, "0");
+  const month = String(today.getMonth() + 1).padStart(2, "0");
   const year = today.getFullYear();
 
-  const monthNames = [
+  return `${day}/${month}/${year}`;
+};
+
+function convertDate(inputDate) {
+  const months = [
     "Jan",
     "Feb",
     "Mar",
@@ -47,12 +38,14 @@ const getTdyDate = () => {
     "Nov",
     "Dec",
   ];
-  const month = monthNames[today.getMonth()];
 
-  const day = today.getDate();
+  const [month, date, year] = inputDate.replace(",", "").split(" ");
 
-  return `${month} ${day}, ${year}`;
-};
+  const monthIndex = months.indexOf(month) + 1;
+  const formattedMonth = monthIndex < 10 ? `0${monthIndex}` : monthIndex;
+
+  return `${date}/${formattedMonth}/${year}`;
+}
 
 // @desc -creating new order section for razorpay and storing booking data in database
 // @route - POST api/v1/bookings
@@ -135,46 +128,46 @@ export const verifyOrder = asyncHandler(async (req, res) => {
 
   // @@ section for sending details via whtsapp----------------------------------------------
 
-  let addOns = "";
-  let ceremonyTypesDe = "";
+  // @@ section for sending details via whtsapp----------------------------------------------
+
+  let addOn = "";
+  let addOnPrice = 0;
+  let ceremonyTypesDet = "";
+  let cakeType = "No Data";
+
+  if (data?.cake) {
+    cakeType = data?.isCakeEggLess ? "Egg-less" : "Regular";
+  }
 
   if (Array.isArray(data?.ceremonyTypeLabels)) {
     data?.ceremonyTypeLabels?.forEach((e, i) => {
       if (i < data?.ceremonyTypeLabels.length - 1) {
-        ceremonyTypesDe += `${e?.label}:${e?.value}`;
+        ceremonyTypesDet += `${e?.label}:${e?.value}`;
       } else {
-        ceremonyTypesDe += `,${e?.label}:${e?.value}`;
+        ceremonyTypesDet += `,${e?.label}:${e?.value}`;
       }
     });
   } else {
-    ceremonyTypesDe = "No Data";
+    ceremonyTypesDet = "No Data";
   }
 
-  if (Array.isArray(data?.addOns)) {
+  if (Array.isArray(data?.addOns) && data?.addOns?.length >= 1) {
     data.addOns.forEach((e, i) => {
       if (i < data.addOns.length - 1) {
-        addOns += `${e.title}, `;
+        addOn += `${e.title}, `;
+        addOnPrice += Number(e?.price);
       } else {
-        addOns += e.title;
+        addOnPrice += Number(e?.price);
+        addOn += e.title;
       }
     });
   } else {
-    addOns = "No Data";
+    addOn = "No Data";
   }
-
-  //getting booking date
-
-  const today = new Date();
-
-  const year = today.getFullYear();
-  const month = String(today.getMonth() + 1).padStart(2, "0");
-  const day = String(today.getDate()).padStart(2, "0");
-
-  const formattedDate = `${year}-${month}-${day}`;
 
   const payload = {
     apiKey: process.env.WHATSAPP_API_KEY,
-    campaignName: "partyScapeNew",
+    campaignName: "partyScape45",
     destination: data?.bookedBy?.whatsappNumber,
     userName: "party scape",
     templateParams: [
@@ -182,16 +175,19 @@ export const verifyOrder = asyncHandler(async (req, res) => {
       data?.bookedBy?.name,
       data?.theater?.theaterName,
       `${data?.totalPeople}`,
-      addOns,
-      getTdyDate(),
+      addOn,
       data?.bookedSlot,
-      data?.bookedDate,
+      getTdyDate(),
+      convertDate(data?.bookedDate),
       data?.bookedBy?.email,
       data?.bookedBy?.whatsappNumber,
       data?.cake ? data?.cake?.name : "No Data",
-      data?.cake ? (data?.isCakeEggLess ? "Egg-less" : "Regular") : "No Data",
-      data?.ceremonyType?.type,
-      ceremonyTypesDe,
+      cakeType,
+      ceremony ? ceremony?.type : "No Data",
+      ceremonyTypesDet,
+      bookedSlot?.value?.price.toString(),
+      addOnPrice.toString(),
+
       JSON.stringify(data?.price),
       "700",
       JSON.stringify(data?.remainingPrice),
@@ -202,21 +198,20 @@ export const verifyOrder = asyncHandler(async (req, res) => {
     carouselCards: [],
     location: {},
   };
-  console.log(data);
 
-  // axios
-  //   .post(process.env.API_URL, payload, {
-  //     headers: {
-  //       "Content-Type": "application/json",
-  //     },
-  //   })
-  //   .then((response) => {
-  //     console.log("Response data:", response.data);
-  //   })
-  //   .catch((error) => {
-  //     console.error("Error:", error.message);
-  //     console.error("Error response data:", error.response.data);
-  //   });
+  axios
+    .post(process.env.API_URL, payload, {
+      headers: {
+        "Content-Type": "application/json",
+      },
+    })
+    .then((response) => {
+      console.log("Response data:", response.data);
+    })
+    .catch((error) => {
+      console.error("Error:", error.message);
+      console.error("Error response data:", error.response.data);
+    });
 
   // ----------------------------------------whtsapp section end------------------------------------------
 
@@ -261,6 +256,11 @@ export const getAllBookings = asyncHandler(async (req, res) => {
   const formattedDate = `${month} ${day}, ${year}`;
 
   const pipeline = [
+    {
+      $sort: {
+        parsedDate: -1,
+      },
+    },
     {
       $lookup: {
         from: "cakes",
@@ -322,16 +322,15 @@ export const getAllBookings = asyncHandler(async (req, res) => {
         parsedDate: { $dateFromString: { dateString: "$bookedDate" } },
       },
     },
-    {
-      $sort: {
-        parsedDate: -1,
-      },
-    },
   ];
 
   try {
     await bookings.deleteMany({ isBookedSuccessfully: false });
-    const data = await bookings.aggregate(pipeline);
+
+    const data = await bookings
+      .aggregate(pipeline, { allowDiskUse: true })
+      .allowDiskUse(true);
+
     res.status(200).json({ status: true, data, length: data.length });
   } catch (error) {
     console.error("Error fetching bookings:", error);
@@ -422,13 +421,13 @@ export const deleteBookings = asyncHandler(async (req, res, next) => {
 //@desc - create offline booking
 //@route - GET api/v1/offlineBooking/
 export const offlineBooking = asyncHandler(async (req, res, next) => {
-  const id = await generateCustomerId();
-
+  const count = await bookings.countDocuments();
+  const bookingId = "PS" + String(count).padStart(5, "0");
   const {
     whatsappNumber,
     email,
     name,
-    eggLess,
+    eggless,
     addOns,
     bookingPrice,
     // ceremonyType,
@@ -463,6 +462,7 @@ export const offlineBooking = asyncHandler(async (req, res, next) => {
   const day = inputDate.getDate();
   const year = inputDate.getFullYear();
   const formattedDate = month + " " + day + ", " + year;
+  console.log(formattedDate);
 
   const cakePriceData = quantity && JSON.parse(quantity);
 
@@ -482,7 +482,7 @@ export const offlineBooking = asyncHandler(async (req, res, next) => {
   const bookingData = await bookings.create({
     theater: req?.body?.theater?.value,
     theaterPrice: bookingPrice,
-    bookingId: id.toString(),
+    bookingId,
     cake: req?.body?.cake?.value?.id,
     price: bookingPrice,
 
@@ -499,30 +499,31 @@ export const offlineBooking = asyncHandler(async (req, res, next) => {
     ceremonyType: ceremonyType?.value,
     bookedDate: formattedDate,
     addOns: updatedAddons,
-    remainingPrice: Number(bookingPrice - 750),
+    remainingPrice: Number(bookingPrice - 700),
     cakePrice: cakePriceData?.price,
-    isCakeEggLess: eggLess ? true : false,
+    isCakeEggLess: eggless,
     cakeQuantity: cakePriceData?.weight,
     bookedSlot: bookedSlot?.label,
     totalPeople: totalPeople?.value,
     ceremonyTypeLabels: updatedCeremony,
   });
+
   let data = await bookings
     .findById(bookingData._id)
     .populate("cake", ["name"])
     .populate("ceremonyType", ["type"])
     .populate("theater", ["theaterName"]);
 
-  const theaterData = await theater.findById(data?.theater?._id);
+  // const theaterData = await theater.findById(data?.theater?._id);
 
-  let theaterPricing;
+  // let theaterPricing;
 
-  theaterData?.slots?.forEach((item) => {
-    let tim = `${item?.start} - ${item?.end}`;
-    if (tim == data?.bookedSlot) {
-      theaterPricing = item?.theaterPrice;
-    }
-  });
+  // theaterData?.slots?.forEach((item) => {
+  //   let tim = `${item?.start} - ${item?.end}`;
+  //   if (tim == data?.bookedSlot) {
+  //     theaterPricing = item?.theaterPrice;
+  //   }
+  // });
 
   // @@ section for sending details via whtsapp----------------------------------------------
 
@@ -547,7 +548,7 @@ export const offlineBooking = asyncHandler(async (req, res, next) => {
     ceremonyTypesDet = "No Data";
   }
 
-  if (Array.isArray(data?.addOns)) {
+  if (Array.isArray(data?.addOns) && data?.addOns?.length >= 1) {
     data.addOns.forEach((e, i) => {
       if (i < data.addOns.length - 1) {
         addOn += `${e.title}, `;
@@ -574,14 +575,14 @@ export const offlineBooking = asyncHandler(async (req, res, next) => {
       addOn,
       data?.bookedSlot,
       getTdyDate(),
-      data?.bookedDate,
+      convertDate(data?.bookedDate),
       data?.bookedBy?.email,
       data?.bookedBy?.whatsappNumber,
       data?.cake ? data?.cake?.name : "No Data",
       cakeType,
-      ceremonyType ? ceremony?.type : "No Data",
+      ceremony ? ceremony?.type : "No Data",
       ceremonyTypesDet,
-      theaterPricing.toString(),
+      bookedSlot?.value?.price.toString(),
       addOnPrice.toString(),
 
       JSON.stringify(data?.price),
@@ -594,7 +595,7 @@ export const offlineBooking = asyncHandler(async (req, res, next) => {
     carouselCards: [],
     location: {},
   };
-  console.log(payload);
+
   axios
     .post(process.env.API_URL, payload, {
       headers: {
