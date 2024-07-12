@@ -254,8 +254,8 @@ export const getAllBookings = asyncHandler(async (req, res) => {
   const day = inputDate.getDate();
   const year = inputDate.getFullYear();
   const formattedDate = `${month} ${day}, ${year}`;
-
-  const page = req?.params?.page || 1;
+  console.log();
+  const page = req?.query?.page || 1;
   console.log(page);
   const pageSize = 10;
 
