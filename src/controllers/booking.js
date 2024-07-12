@@ -255,7 +255,7 @@ export const getAllBookings = asyncHandler(async (req, res) => {
   const year = inputDate.getFullYear();
   const formattedDate = `${month} ${day}, ${year}`;
 
-  const page = 1;
+  const page = req?.params?.page || 1;
   const pageSize = 10;
 
   const pipeline = [
