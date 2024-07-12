@@ -256,6 +256,7 @@ export const getAllBookings = asyncHandler(async (req, res) => {
   const formattedDate = `${month} ${day}, ${year}`;
 
   const page = req?.params?.page || 1;
+  console.log(page);
   const pageSize = 10;
 
   const pipeline = [
@@ -343,7 +344,12 @@ export const getAllBookings = asyncHandler(async (req, res) => {
 
     const data = await bookings.aggregate(pipeline, { allowDiskUse: true });
 
-    res.status(200).json({ status: true, data, length: data.length });
+    res.status(200).json({
+      status: true,
+      data,
+      length: data.length,
+      totalPages: Math.round(data.length / 10),
+    });
   } catch (error) {
     console.error("Error fetching bookings:", error);
     res.status(500).json({ status: false, message: "Internal Server Error" });
