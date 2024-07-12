@@ -255,12 +255,10 @@ export const getAllBookings = asyncHandler(async (req, res) => {
   const year = inputDate.getFullYear();
   const formattedDate = `${month} ${day}, ${year}`;
 
+  const page = 1;
+  const pageSize = 10;
+
   const pipeline = [
-    {
-      $sort: {
-        parsedDate: -1,
-      },
-    },
     {
       $lookup: {
         from: "cakes",
@@ -322,14 +320,28 @@ export const getAllBookings = asyncHandler(async (req, res) => {
         parsedDate: { $dateFromString: { dateString: "$bookedDate" } },
       },
     },
+    {
+      $sort: {
+        parsedDate: -1,
+      },
+    },
+    {
+      $skip: (page - 1) * pageSize,
+    },
+    {
+      $limit: pageSize,
+    },
   ];
+
+  try {
+  } catch (e) {
+    res.status(201).json({ status: true });
+  }
 
   try {
     await bookings.deleteMany({ isBookedSuccessfully: false });
 
-    const data = await bookings
-      .aggregate(pipeline, { allowDiskUse: true })
-      .allowDiskUse(true);
+    const data = await bookings.aggregate(pipeline, { allowDiskUse: true });
 
     res.status(200).json({ status: true, data, length: data.length });
   } catch (error) {
