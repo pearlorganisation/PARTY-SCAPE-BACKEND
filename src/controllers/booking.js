@@ -341,14 +341,15 @@ export const getAllBookings = asyncHandler(async (req, res) => {
 
   try {
     await bookings.deleteMany({ isBookedSuccessfully: false });
+    const length = await bookings.countDocuments();
 
     const data = await bookings.aggregate(pipeline, { allowDiskUse: true });
 
     res.status(200).json({
       status: true,
       data,
-      length: data.length,
-      totalPages: Math.round(data.length / 10),
+
+      totalPages: Math.round(length / 10),
     });
   } catch (error) {
     console.error("Error fetching bookings:", error);
