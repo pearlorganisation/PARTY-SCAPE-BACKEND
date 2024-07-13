@@ -38,8 +38,17 @@ export const deleteCustomer = asyncHandler(async (req, res) => {
 // @desc -get all prospectiveCustomers
 // @route - GET api/v1/auth/prospectiveCustomers
 export const getAllCustomers = asyncHandler(async (req, res) => {
-  const data = await prospectiveCustomers.find();
-  res.status(200).json({ status: true, data });
+  const page = parseInt(req.query.page) || 1;
+  const limit = parseInt(req.query.limit) || 10;
+  const length = await prospectiveCustomers.countDocuments();
+  const data = await prospectiveCustomers
+    .find()
+    .skip((page - 1) * limit)
+    .limit(limit);
+
+  res
+    .status(200)
+    .json({ status: true, data, totalPages: Math.ceil(length / limit) });
 });
 
 // @desc -get all prospective Customers data in excel sheet

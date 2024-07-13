@@ -257,7 +257,7 @@ export const getAllBookings = asyncHandler(async (req, res) => {
   console.log();
   const page = req?.query?.page || 1;
   console.log(page);
-  const pageSize = 10;
+  const pageSize = 3;
 
   const pipeline = [
     {
@@ -634,10 +634,6 @@ export const offlineBooking = asyncHandler(async (req, res, next) => {
 
   res.status(201).json({ status: true, message: "Booked successfully!!" });
 });
-
-// export const offlineBooking = asyncHandler(async (req, res, next) => {
-//   console.log(generateCustomerId());
-// });
 
 //@desc - get booking data in excel-sheet
 //@route - GET api/v1/sheet/
