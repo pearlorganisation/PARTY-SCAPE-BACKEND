@@ -97,9 +97,6 @@ export const getParticularTheater = asyncHandler(async (req, res, next) => {
     if (existingSlotIndex !== -1) {
       // If the date exists, push the booked slot to the existing date's slots array
       bookedSlots[existingSlotIndex].slots.push(bookedSlot);
-    } else {
-      // If the date does not exist, create a new object with the date and slot
-      bookedSlots.push({ date: bookedDate, slots: [bookedSlot] });
     }
   });
 
