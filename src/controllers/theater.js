@@ -71,42 +71,26 @@ export const updateTheater = asyncHandler(async (req, res, next) => {
 // @route - GET api/v1/theater/:id
 export const getParticularTheater = asyncHandler(async (req, res, next) => {
   const { id } = req?.params;
-
-  // Find the theater based on the theaterName
   const data = await theater.findOne({ theaterName: new RegExp(id, "i") });
-
-  // Delete bookings that are not successfully booked
   await bookings.deleteMany({ isBookedSuccessfully: false });
-
-  // Get all bookings with the relevant fields and populate the theater name
   const bookingData = await bookings
     .find({}, { theater: true, bookedDate: true, bookedSlot: true })
     .populate("theater", ["theaterName"]);
-
   const bookedSlots = [];
 
-  // Iterate through each booking
   bookingData.forEach((booking) => {
     const { bookedDate, bookedSlot } = booking;
 
-    // Find if the booked date already exists in the bookedSlots array
     const existingSlotIndex = bookedSlots.findIndex(
       (slot) => slot.date === bookedDate
     );
 
     if (existingSlotIndex !== -1) {
-      // If the date exists, push the booked slot to the existing date's slots array
       bookedSlots[existingSlotIndex].slots.push(bookedSlot);
+    } else {
+      bookedSlots.push({ date: bookedDate, slots: [bookedSlot] });
     }
   });
 
-  // Filter out any entries that are not present in the booking model
-  const filteredBookedSlots = bookedSlots.filter((slot) =>
-    bookingData.some((booking) => booking.bookedDate === slot.date)
-  );
-
-  // Return the filtered booked slots
-  res
-    .status(200)
-    .json({ status: true, data, bookedSlots: filteredBookedSlots });
+  res.status(200).json({ status: true, data, bookedSlots });
 });
