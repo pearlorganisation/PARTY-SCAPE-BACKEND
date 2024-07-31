@@ -64,7 +64,8 @@ export const bookingOrder = async (req, res, next) => {
       cake: req?.body?.data?.selectedCake?._id,
       ceremonyTypeLabels: req?.body?.data?.selectedCeremonyLabels,
       bookingId,
-
+      cakePrice: req?.body?.cakePriceData?.price,
+      isCakeEggLess: req?.body?.eggless,
       bookedSlot: req?.body?.data?.slot,
       remainingPrice,
       totalPeople: req?.body?.data?.NoOfPeople,
@@ -234,7 +235,7 @@ export const getAllBookings = asyncHandler(async (req, res) => {
   const { search } = req?.query;
   const { filter } = req?.query;
   const inputDate = new Date(filter);
-
+  const date = req?.query;
   const monthNames = [
     "Jan",
     "Feb",
@@ -252,9 +253,10 @@ export const getAllBookings = asyncHandler(async (req, res) => {
 
   const month = monthNames[inputDate.getMonth()];
   const day = inputDate.getDate();
+  const day1 = day.toString();
   const year = inputDate.getFullYear();
   const formattedDate = `${month} ${day}, ${year}`;
-  console.log();
+
   const page = req?.query?.page || 1;
 
   const pageSize = 10;
@@ -297,6 +299,8 @@ export const getAllBookings = asyncHandler(async (req, res) => {
         as: "theater",
       },
     },
+    { $name: "saurabh" },
+
     {
       $unwind: {
         path: "$theater",
