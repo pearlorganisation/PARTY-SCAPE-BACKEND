@@ -64,8 +64,10 @@ export const bookingOrder = async (req, res, next) => {
       cake: req?.body?.data?.selectedCake?._id,
       ceremonyTypeLabels: req?.body?.data?.selectedCeremonyLabels,
       bookingId,
-      cakePrice: req?.body?.cakePriceData?.price,
-      isCakeEggLess: req?.body?.eggless,
+      cakePrice: req?.body?.selectedCake?.selectedPrice,
+      cakePrice: req?.body?.selectedCake?.selectedPrice,
+      cakeQuantity: req?.body?.selectedCake?.weight,
+      isCakeEggLess: req?.body?.selectedIsEggless,
       bookedSlot: req?.body?.data?.slot,
       remainingPrice,
       totalPeople: req?.body?.data?.NoOfPeople,
@@ -459,6 +461,7 @@ export const offlineBooking = asyncHandler(async (req, res, next) => {
     quantity,
 
     date,
+
     otherDetails,
 
     totalPeople,

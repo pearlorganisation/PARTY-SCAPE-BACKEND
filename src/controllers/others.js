@@ -13,3 +13,7 @@ export const saveAccessTokenToCookie = (role, res, token) => {
     ...(process.env.NODE_ENV === "production" && { secure: true }),
   });
 };
+
+export const saveRefreshtoken = (role, res, token) => {
+  return res.cookie("regresh_token -");
+};
