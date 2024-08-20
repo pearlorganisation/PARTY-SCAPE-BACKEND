@@ -720,5 +720,3 @@ export const getBookingDataInSheet = asyncHandler(async (req, res, next) => {
 
   workbook.xlsx.write(res);
 });
-
-export const getDeleteBookingData = asyncHandler(async (req, res, next) => {});
