@@ -338,28 +338,25 @@ export const getAllBookings = asyncHandler(async (req, res) => {
           {
             $limit: pageSize,
           },
-      
         ],
-        totalCount: [
-          { $count: "count" },
-        ],
+        totalCount: [{ $count: "count" }],
       },
     },
   ];
 
   try {
-  } catch (e) {
-    res.status(201).json({ status: true });
-  }
-
-  try {
     await bookings.deleteMany({ isBookedSuccessfully: false });
 
     const data = await bookings.aggregate(pipeline, { allowDiskUse: true });
+    const result = Array.isArray(data) && data.length > 0 ? data[0] : null;
 
-    res.status(200).json({
+    return res.status(200).json({
       status: true,
-      data,
+      data: result && result?.data ? result.data : [],
+      totalCount:
+        result && result?.totalCount && result?.totalCount?.length > 0 && result.totalCount[0]?.count
+          ? result.totalCount[0].count
+          : 0,
     });
   } catch (error) {
     console.error("Error fetching bookings:", error);
