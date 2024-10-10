@@ -43,6 +43,7 @@ export const getAllCustomers = asyncHandler(async (req, res) => {
   const length = await prospectiveCustomers.countDocuments();
   const data = await prospectiveCustomers
     .find()
+    .sort({ createdAt: -1 })
     .skip((page - 1) * limit)
     .limit(limit);
 
