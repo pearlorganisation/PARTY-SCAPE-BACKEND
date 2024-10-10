@@ -272,7 +272,6 @@ export const getAllBookings = asyncHandler(async (req, res) => {
         as: "cake",
       },
     },
-
     {
       $unwind: {
         path: "$cake",
@@ -301,8 +300,6 @@ export const getAllBookings = asyncHandler(async (req, res) => {
         as: "theater",
       },
     },
-    { $name: "saurabh" },
-
     {
       $unwind: {
         path: "$theater",
@@ -328,34 +325,38 @@ export const getAllBookings = asyncHandler(async (req, res) => {
       },
     },
     {
-      $sort: {
-        parsedDate: -1,
+      $facet: {
+        data: [
+          {
+            $sort: {
+              parsedDate: -1,
+            },
+          },
+          {
+            $skip: (page - 1) * pageSize,
+          },
+          {
+            $limit: pageSize,
+          },
+        ],
+        totalCount: [{ $count: "count" }],
       },
-    },
-    {
-      $skip: (page - 1) * pageSize,
-    },
-    {
-      $limit: pageSize,
     },
   ];
 
   try {
-  } catch (e) {
-    res.status(201).json({ status: true });
-  }
-
-  try {
     await bookings.deleteMany({ isBookedSuccessfully: false });
-    const length = await bookings.countDocuments();
 
     const data = await bookings.aggregate(pipeline, { allowDiskUse: true });
+    const result = Array.isArray(data) && data.length > 0 ? data[0] : null;
 
-    res.status(200).json({
+    return res.status(200).json({
       status: true,
-      data,
-
-      totalPages: Math.round(length / 10),
+      data: result && result?.data ? result.data : [],
+      totalCount:
+        result && result?.totalCount && result?.totalCount?.length > 0 && result.totalCount[0]?.count
+          ? result.totalCount[0].count
+          : 0,
     });
   } catch (error) {
     console.error("Error fetching bookings:", error);
