@@ -237,33 +237,29 @@ export const getAllBookings = asyncHandler(async (req, res) => {
   const { search } = req?.query;
   const { filter } = req?.query;
   const inputDate = new Date(filter);
-  const date = req?.query;
   const monthNames = [
-    "Jan",
-    "Feb",
-    "Mar",
-    "Apr",
-    "May",
-    "Jun",
-    "Jul",
-    "Aug",
-    "Sep",
-    "Oct",
-    "Nov",
-    "Dec",
+    "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
   ];
 
   const month = monthNames[inputDate.getMonth()];
   const day = inputDate.getDate();
-  const day1 = day.toString();
   const year = inputDate.getFullYear();
   const formattedDate = `${month} ${day}, ${year}`;
 
-  const page = req?.query?.page || 1;
-
+  const page = parseInt(req?.query?.page) || 1;
   const pageSize = 10;
 
-  const pipeline = [
+  const matchStage = {
+    $match: {
+      "bookedBy.name": {
+        $regex: search ? `.*${search}.*` : "",
+        $options: "i",
+      },
+      bookedDate: filter ? formattedDate : { $exists: true },
+    },
+  };
+
+  const populateStages = [
     {
       $lookup: {
         from: "cakes",
@@ -305,64 +301,57 @@ export const getAllBookings = asyncHandler(async (req, res) => {
         path: "$theater",
         preserveNullAndEmptyArrays: true,
       },
-    },
-    {
-      $match: {
-        "bookedBy.name": {
-          $regex: search ? `.*${search}.*` : "",
-          $options: "i",
-        },
-      },
-    },
-    {
-      $match: {
-        bookedDate: filter ? formattedDate : { $exists: true },
-      },
-    },
-    {
-      $addFields: {
-        parsedDate: { $dateFromString: { dateString: "$bookedDate" } },
-      },
-    },
-    {
-      $facet: {
-        data: [
-          {
-            $sort: {
-              parsedDate: -1,
-            },
-          },
-          {
-            $skip: (page - 1) * pageSize,
-          },
-          {
-            $limit: pageSize,
-          },
-        ],
-        totalCount: [{ $count: "count" }],
-      },
-    },
+    }
   ];
 
   try {
+    // Remove unsuccessful bookings
     await bookings.deleteMany({ isBookedSuccessfully: false });
 
-    const data = await bookings.aggregate(pipeline, { allowDiskUse: true });
-    const result = Array.isArray(data) && data.length > 0 ? data[0] : null;
+    // Step 1: Count total documents after matching
+    const totalCountPipeline = [
+      matchStage,
+      {
+        $count: "count"
+      }
+    ];
+    const totalCountResult = await bookings.aggregate(totalCountPipeline, { allowDiskUse: true });
+    const totalCount = totalCountResult.length > 0 ? totalCountResult[0].count : 0;
+
+    // Step 2: Fetch paginated data
+    const dataPipeline = [
+      matchStage, // Apply the match first to filter down the documents
+      {
+        $addFields: {
+          parsedDate: { $dateFromString: { dateString: "$bookedDate" } },
+        },
+      },
+      {
+        $sort: {
+          parsedDate: 1,
+        },
+      },
+      {
+        $skip: (page - 1) * pageSize,
+      },
+      {
+        $limit: pageSize,
+      },
+      ...populateStages // Populate after filtering, sorting, and paginating
+    ];
+
+    const data = await bookings.aggregate(dataPipeline, { allowDiskUse: true });
 
     return res.status(200).json({
       status: true,
-      data: result && result?.data ? result.data : [],
-      totalCount:
-        result && result?.totalCount && result?.totalCount?.length > 0 && result.totalCount[0]?.count
-          ? result.totalCount[0].count
-          : 0,
+      data: data,
+      totalCount: totalCount,
     });
   } catch (error) {
     console.error("Error fetching bookings:", error);
     res.status(500).json({ status: false, message: "Internal Server Error" });
   }
-});
+}); 
 
 // @desc -creating new user
 // @route - POST api/v1/auth/signup
