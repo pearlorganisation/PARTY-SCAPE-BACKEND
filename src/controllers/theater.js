@@ -72,9 +72,16 @@ export const updateTheater = asyncHandler(async (req, res, next) => {
 export const getParticularTheater = asyncHandler(async (req, res, next) => {
   const { id } = req?.params;
   const data = await theater.findOne({ theaterName: new RegExp(id, "i") });
+
+  if (!data) {
+    return res.status(404).json({ status: false, message: "Theater not found" });
+  }
+
+  const theaterId = data._id;
+
   await bookings.deleteMany({ isBookedSuccessfully: false });
   const bookingData = await bookings
-    .find({}, { theater: true, bookedDate: true, bookedSlot: true })
+    .find({ theater: theaterId }, { theater: true, bookedDate: true, bookedSlot: true })
     .populate("theater", ["theaterName"]);
   const bookedSlots = [];
 
